@@ -123,7 +123,7 @@ def _build_product_answer(question: str, settings: AIAgentSettings) -> Dict:
 
     return {
         'mode': 'product',
-        'status': 'Latest product information fetched from live database.',
+        'status': 'Latest product information fetched.',
         'answer': answer,
         'products_context': selected,
         'cards': cards,
