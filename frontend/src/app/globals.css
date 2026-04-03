@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth animations globally */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-black antialiased;
+  font-family: 'Inter', sans-serif;
+}
