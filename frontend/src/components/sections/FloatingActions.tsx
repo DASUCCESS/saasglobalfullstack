@@ -12,7 +12,7 @@ export default function FloatingActions() {
   const [step, setStep] = useState<Step>(1);
   const [channel, setChannel] = useState<"whatsapp" | "email">("whatsapp");
   const [aiLabel, setAiLabel] = useState("Ask AI Agent");
-  const [aiUrl, setAiUrl] = useState("/admin/login");
+  const [aiUrl, setAiUrl] = useState("/ai-chat");
 
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
@@ -27,7 +27,7 @@ export default function FloatingActions() {
       .then((r) => r.json())
       .then((data) => {
         setAiLabel(data?.site?.ai_agent_label || "Ask AI Agent");
-        setAiUrl(data?.site?.ai_agent_url || "/admin/login");
+        setAiUrl(data?.site?.ai_agent_url || "/ai-chat");
       })
       .catch(() => undefined);
 
