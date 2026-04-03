@@ -9,7 +9,7 @@ cd backend
 cp .env.example .env
 ```
 
-Then edit `.env` with your values (`DJANGO_SECRET_KEY`, `DATABASE_URL`, SMTP, CORS/CSRF, security flags, etc.).
+Update PostgreSQL credentials in `.env` (`POSTGRES_*`). This backend is configured to use PostgreSQL only.
 
 ## 2) Install and run
 

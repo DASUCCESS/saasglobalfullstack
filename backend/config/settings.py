@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
@@ -18,7 +17,7 @@ def env_list(name: str, default: str = '') -> list[str]:
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-dev-key-change-me')
 DEBUG = env_bool('DJANGO_DEBUG', True)
-ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '*')
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,11 +63,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=env_bool('DB_SSL_REQUIRE', False),
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'saasglobalhub'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.getenv('POSTGRES_HOST', '127.0.0.1'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'CONN_MAX_AGE': int(os.getenv('POSTGRES_CONN_MAX_AGE', '600')),
+        'OPTIONS': {
+            'sslmode': os.getenv('POSTGRES_SSLMODE', 'prefer'),
+        },
+    }
 }
 
 LANGUAGE_CODE = 'en-us'
