@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { apiGet } from "@/lib/api";
@@ -25,6 +26,35 @@ interface Product {
   faqs?: { q: string; a: string }[];
   price_usd: number;
   price_ngn: number;
+}
+
+
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await apiGet<Product>(`/products/${slug}/`);
+
+  if (!product) {
+    return {
+      title: "Product not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = product.content?.hero_title || product.name;
+  const description = product.content?.hero_description || product.short_description || product.tagline;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `/products/${product.slug}`,
+    },
+  };
 }
 
 export default async function ProductDetail({ params }: { params: Promise<{ slug: string }> }) {

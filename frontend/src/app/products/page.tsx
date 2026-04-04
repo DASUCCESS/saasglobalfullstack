@@ -14,6 +14,18 @@ type Product = {
   features?: { title: string }[];
 };
 
+
+export async function generateMetadata() {
+  const payload = await apiGet<{ products: Product[] }>("/products-page/");
+  const visibleCount = (payload?.products || []).filter((p) => p.is_visible).length;
+
+  return {
+    title: "Products",
+    description: `Explore ${visibleCount} backend-managed SaaS products with admin-controlled visibility and content.`,
+    alternates: { canonical: "/products" },
+  };
+}
+
 export default async function ProductsIndexPage() {
   const payload = await apiGet<{ products: Product[] }>("/products-page/");
   const products = (payload?.products || []).filter((p) => p.is_visible);

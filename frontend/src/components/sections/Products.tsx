@@ -1,31 +1,30 @@
 "use client";
 import { motion } from "framer-motion";
 import { Bot, Truck, Store } from "lucide-react";
-import { useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { apiGet } from "@/lib/api";
 
-const products = [
-  {
-    title: "OwnMindAI",
-    description: "WhatsApp & AI SaaS for automation, chatbots, and business growth.",
-    icon: <Bot className="w-8 h-8 text-white" />,
-    link: "/products",
-    gradient: "from-brand-yellow to-orange-500",
-  },
-  {
-    title: "Logistics SaaS",
-    description: "Mobile apps & SaaS for delivery, dispatch, and fleet management.",
-    icon: <Truck className="w-8 h-8 text-white" />,
-    link: "/products",
-    gradient: "from-blue-500 to-indigo-500",
-  },
-  {
-    title: "Multi-supplier Platform",
-    description: "A powerful system for suppliers, vendors, and smart delivery.",
-    icon: <Store className="w-8 h-8 text-white" />,
-    link: "/products",
-    gradient: "from-green-500 to-emerald-600",
-  },
-];
+type ApiProduct = {
+  slug: string;
+  name: string;
+  short_description?: string;
+  tagline?: string;
+  is_visible?: boolean;
+};
+
+type ProductCard = {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  link: string;
+  gradient: string;
+};
+
+const cardStyles = [
+  { icon: <Bot className="w-8 h-8 text-white" />, gradient: "from-brand-yellow to-orange-500" },
+  { icon: <Truck className="w-8 h-8 text-white" />, gradient: "from-blue-500 to-indigo-500" },
+  { icon: <Store className="w-8 h-8 text-white" />, gradient: "from-green-500 to-emerald-600" },
+] as const;
 
 type BotSpec = {
   top: string;
@@ -50,35 +49,22 @@ const botSpecs: BotSpec[] = [
 
 function AIBotSVG({ size = 160 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 256 256"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="none" aria-hidden="true">
       <defs>
         <linearGradient id="botGrad" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="currentColor" />
           <stop offset="100%" stopColor="currentColor" />
         </linearGradient>
       </defs>
-      {/* Head */}
       <rect x="56" y="40" width="144" height="104" rx="24" stroke="url(#botGrad)" strokeWidth="10" />
-      {/* Antenna */}
       <circle cx="128" cy="22" r="12" stroke="url(#botGrad)" strokeWidth="8" />
       <line x1="128" y1="34" x2="128" y2="40" stroke="currentColor" strokeWidth="8" />
-      {/* Eyes */}
       <circle cx="92" cy="88" r="12" fill="currentColor" />
       <circle cx="164" cy="88" r="12" fill="currentColor" />
-      {/* Mouth */}
       <rect x="96" y="116" width="64" height="14" rx="7" fill="currentColor" />
-      {/* Body */}
       <rect x="72" y="148" width="112" height="44" rx="12" stroke="url(#botGrad)" strokeWidth="10" />
-      {/* Arms */}
       <path d="M56 96 H36 C28 96 24 100 24 108 V128" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
       <path d="M200 96 H220 C228 96 232 100 232 108 V128" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
-      {/* Legs */}
       <rect x="96" y="192" width="20" height="28" rx="6" fill="currentColor" />
       <rect x="140" y="192" width="20" height="28" rx="6" fill="currentColor" />
     </svg>
@@ -95,25 +81,14 @@ function BackgroundBots() {
         <motion.div
           key={i}
           className={`absolute ${b.blur} text-gray-900`}
-          style={{
-            top: b.top,
-            left: b.left,
-            transform: `rotate(${b.rotate ?? 0}deg)`,
-            opacity: b.opacity ?? 0.07,
-          }}
+          style={{ top: b.top, left: b.left, transform: `rotate(${b.rotate ?? 0}deg)`, opacity: b.opacity ?? 0.07 }}
           initial={{ x: 0, y: 0, opacity: 0 }}
           animate={{
             y: [0, b.yRange ?? 20, 0, -(b.yRange ?? 20), 0],
             x: [0, b.xDrift ?? 16, 0, -(b.xDrift ?? 16), 0],
             opacity: [0, b.opacity ?? 0.07, b.opacity ?? 0.07, b.opacity ?? 0.07, b.opacity ?? 0.07],
           }}
-          transition={{
-            repeat: Infinity,
-            repeatType: "loop",
-            duration: b.duration ?? 12,
-            ease: "easeInOut",
-            delay: b.delay ?? 0,
-          }}
+          transition={{ repeat: Infinity, repeatType: "loop", duration: b.duration ?? 12, ease: "easeInOut", delay: b.delay ?? 0 }}
         >
           <AIBotSVG size={b.size} />
         </motion.div>
@@ -125,17 +100,29 @@ function BackgroundBots() {
 }
 
 export default function Products() {
+  const [products, setProducts] = useState<ProductCard[]>([]);
+
+  useEffect(() => {
+    apiGet<{ products: ApiProduct[] }>("/products-page/").then((payload) => {
+      const cards = (payload?.products || [])
+        .filter((p) => p.is_visible)
+        .slice(0, 3)
+        .map((p, index) => ({
+          title: p.name,
+          description: p.short_description || p.tagline || "Explore this backend-managed product offering.",
+          link: `/products/${p.slug}`,
+          icon: cardStyles[index % cardStyles.length].icon,
+          gradient: cardStyles[index % cardStyles.length].gradient,
+        }));
+      setProducts(cards);
+    });
+  }, []);
+
   return (
     <section id="products" className="relative py-24 bg-gradient-to-b from-gray-50 to-white">
       <BackgroundBots />
       <div className="relative max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} viewport={{ once: true }} className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold">
             Our <span className="text-brand-yellow">Products</span>
           </h2>
@@ -155,22 +142,10 @@ export default function Products() {
               viewport={{ once: true }}
               className="relative group bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-xl hover:shadow-[0_18px_60px_rgba(0,0,0,0.15)] hover:scale-105 transition-all duration-500 border border-gray-100 hover:border-brand-yellow flex flex-col items-start gap-5 cursor-pointer min-h-[260px]"
             >
-              <div className={`p-4 rounded-xl bg-gradient-to-r ${product.gradient} shadow-md inline-flex`}>
-                {product.icon}
-              </div>
-
-              <h3 className="text-xl font-semibold group-hover:text-brand-yellow transition">
-                {product.title}
-              </h3>
-
-              <p className="text-gray-600 leading-relaxed">
-                {product.description}
-              </p>
-
-              <span className="mt-auto font-semibold text-brand-yellow group-hover:underline transition">
-                Learn More →
-              </span>
-
+              <div className={`p-4 rounded-xl bg-gradient-to-r ${product.gradient} shadow-md inline-flex`}>{product.icon}</div>
+              <h3 className="text-xl font-semibold group-hover:text-brand-yellow transition">{product.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{product.description}</p>
+              <span className="mt-auto font-semibold text-brand-yellow group-hover:underline transition">Learn More →</span>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-yellow/0 via-brand-yellow/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none" />
             </motion.a>
           ))}

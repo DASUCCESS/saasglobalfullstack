@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from apps.catalog.models import Product
 
 
@@ -19,8 +20,20 @@ class PurchaseOrder(models.Model):
     amount_ngn = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_reference = models.CharField(max_length=255, unique=True)
+    idempotency_key = models.CharField(max_length=120, blank=True, null=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    user_last_read_at = models.DateTimeField(null=True, blank=True)
+    user_last_read_message_id = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'product', 'provider', 'idempotency_key'],
+                condition=~Q(idempotency_key__isnull=True) & ~Q(idempotency_key=''),
+                name='uniq_order_idempotency_per_user_product_provider',
+            )
+        ]
 
 
 class ConversationMessage(models.Model):

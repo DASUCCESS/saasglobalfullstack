@@ -1,19 +1,31 @@
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from apps.catalog.models import Product
 from apps.catalog.serializers import ProductSerializer
 from apps.catalog.services import compress_image_to_target
 from apps.core.models import CloudinarySettings
+from apps.core.pagination import StandardResultsSetPagination
 import cloudinary.uploader
 
 
+@method_decorator(cache_page(60), name='list')
+@method_decorator(cache_page(120), name='retrieve')
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
+    pagination_class = StandardResultsSetPagination
+
+    def get_permissions(self):
+        if self.action in {'list', 'retrieve'}:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -26,6 +38,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+@cache_page(60)
 def products_page_payload(_request):
     products = Product.objects.filter(is_visible=True)
     serializer = ProductSerializer(products, many=True)

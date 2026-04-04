@@ -1,7 +1,8 @@
 from typing import Dict, List
 import re
 import requests
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from apps.ai_agent.models import AIAgentSettings
 from apps.ai_agent.serializers import AIAgentSettingsSerializer
@@ -132,12 +133,24 @@ def _build_product_answer(question: str, settings: AIAgentSettings) -> Dict:
 
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser])
 def ai_settings(_request):
     obj, _ = AIAgentSettings.objects.get_or_create(pk=1)
     return Response(AIAgentSettingsSerializer(obj).data)
 
 
+@api_view(['POST', 'PATCH'])
+@permission_classes([IsAdminUser])
+def update_ai_settings(request):
+    obj, _ = AIAgentSettings.objects.get_or_create(pk=1)
+    serializer = AIAgentSettingsSerializer(obj, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+
+
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def ai_ask(request):
     question = (request.data.get('question') or '').strip()
     settings, _ = AIAgentSettings.objects.get_or_create(pk=1)

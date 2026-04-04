@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
+from django.views.decorators.cache import cache_page
 from apps.core.models import ContactSettings, CloudinarySettings, PaymentSettings, SiteSettings
 from apps.core.serializers import (
     ContactSettingsSerializer,
@@ -12,6 +13,8 @@ import requests
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+@cache_page(120)
 def public_settings(_request):
     return Response(
         {
@@ -23,6 +26,7 @@ def public_settings(_request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def refresh_rate(_request):
     try:
         response = requests.get('https://open.er-api.com/v6/latest/USD', timeout=8)
@@ -39,6 +43,7 @@ def refresh_rate(_request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser])
 def admin_settings(_request):
     return Response(
         {
