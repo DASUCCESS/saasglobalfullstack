@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import { getToken, clearToken } from "@/lib/auth";
+import { ADMIN_LOGIN_PATH } from "@/lib/admin";
 
 const links = [
   ["Overview", "/admin/overview"],
@@ -24,13 +25,13 @@ export default function AdminShell({ title, children }: { title: string; childre
   useEffect(() => {
     const token = getToken();
     if (!token) {
-      window.location.href = "/admin/login";
+      window.location.href = ADMIN_LOGIN_PATH;
       return;
     }
     apiGet<{ is_admin: boolean }>("/auth/me/", token).then((res) => {
       if (!res?.is_admin) {
         clearToken();
-        window.location.href = "/admin/login";
+        window.location.href = ADMIN_LOGIN_PATH;
         return;
       }
       setOk(true);

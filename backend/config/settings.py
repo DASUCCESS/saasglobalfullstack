@@ -70,7 +70,7 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('POSTGRES_HOST'),
         'PORT': os.getenv('POSTGRES_PORT'),
-        'CONN_MAX_AGE': int(os.getenv('POSTGRES_CONN_MAX_AGE')),
+        'CONN_MAX_AGE': int(os.getenv('POSTGRES_CONN_MAX_AGE', '60')),
         'OPTIONS': {
             'sslmode': os.getenv('POSTGRES_SSLMODE'),
         },
@@ -109,6 +109,16 @@ EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', False)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@saasglobalhub.com')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardResultsSetPagination',
+    'PAGE_SIZE': int(os.getenv('API_PAGE_SIZE', '10')),
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'saasglobalhub-default-cache',
+        'TIMEOUT': int(os.getenv('CACHE_DEFAULT_TIMEOUT', '120')),
+    }
 }
