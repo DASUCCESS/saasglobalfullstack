@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api";
+import { env } from "@/lib/env";
+
+const API_BASE = env.apiBaseUrl;
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 

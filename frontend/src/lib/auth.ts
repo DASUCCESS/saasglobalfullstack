@@ -1,7 +1,9 @@
 "use client";
 
-export const TOKEN_KEY = "bolaji_LUQMAN123";
-export const POST_LOGIN_PATH_KEY = "sg_post_login_path";
+import { env } from "@/lib/env";
+
+export const TOKEN_KEY = env.authTokenStorageKey;
+export const POST_LOGIN_PATH_KEY = env.postLoginPathStorageKey;
 
 export const getToken = () => (typeof window === "undefined" ? "" : localStorage.getItem(TOKEN_KEY) || "");
 

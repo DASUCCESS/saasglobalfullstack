@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import FloatingActions from "@/components/sections/FloatingActions";
 import ToastViewport from "@/components/ToastView";
+import { env, getSiteUrl } from "@/lib/env";
 
 export const metadata = {
   title: {
@@ -9,14 +10,14 @@ export const metadata = {
   },
   description:
     "We build and ship AI SaaS (OwnMindAI: WhatsApp + Web autosync), Logistics SaaS with driver apps, and Multi-supplier Ecommerce platforms,plus custom SaaS delivery for startups and enterprises.",
-  metadataBase: new URL("https://www.saasglobalhub.com"),
+  metadataBase: new URL(env.siteUrl),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    siteName: "SaaSGlobal Hub",
-    url: "https://www.saasglobalhub.com",
+    siteName: env.siteName,
+    url: env.siteUrl,
     title: "AI SaaS, Logistics SaaS & Multi-supplier Platforms",
     description:
       "AI SAAS (WhatsApp + Web AI autosync), Logistics SaaS with mobile Apps, and Multi-supplier Ecommerce. We also build custom SaaS.",
@@ -44,12 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "SaaSGlobal Hub",
-              url: "https://www.saasglobalhub.com",
-              logo: "https://www.saasglobalhub.com/saasglobalhublogo.png",
+              name: env.siteName,
+              url: env.siteUrl,
+              logo: getSiteUrl("/saasglobalhublogo.png"),
               sameAs: [
-                "https://twitter.com/saasglobalhub",
-                "https://www.linkedin.com/company/saasglobalhub",
+                env.twitterUrl,
+                env.linkedInUrl,
               ],
             }),
           }}
@@ -60,11 +61,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "SaaSGlobal Hub",
-              url: "https://www.saasglobalhub.com",
+              name: env.siteName,
+              url: env.siteUrl,
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://www.saasglobalhub.com/search?q={query}",
+                target: getSiteUrl("/search?q={query}"),
                 "query-input": "required name=query",
               },
             }),

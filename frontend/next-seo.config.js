@@ -1,3 +1,5 @@
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.saasglobalhub.com").replace(/\/$/, "");
+
 export default {
   title: "SaaSGlobal Hub - Leading SaaS Solutions",
   description:
@@ -5,8 +7,8 @@ export default {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://saasglobalhub.com/",
-    site_name: "SaaSGlobal Hub",
+    url: `${siteUrl}/`,
+    site_name: process.env.NEXT_PUBLIC_SITE_NAME || "SaaSGlobal Hub",
     images: [
       {
         url: "/saasglobalhubogimage.png",

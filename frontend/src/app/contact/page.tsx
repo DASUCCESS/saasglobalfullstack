@@ -4,7 +4,7 @@ import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 import Script from "next/script";
 import Link from "next/link";
-import { apiGet } from "@/lib/api";
+import { env, getSiteUrl } from "@/lib/env";
 
 function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -39,7 +39,7 @@ export const metadata = {
     title: "Contact SaaSGlobal Hub",
     description:
       "Talk to our team about OwnMindAI, Last-Mile Logistics SaaS, and the Multi-supplier Platform. Demos, quotes, and integrations.",
-    url: "https://www.saasglobalhub.com/contact",
+    url: getSiteUrl("/contact"),
     type: "website",
     images: [{ url: "/saasglobalhubogimage.png" }],
     siteName: "SaaSGlobal Hub",
@@ -54,50 +54,40 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-type PublicSettings = {
-  contact?: {
-    whatsapp_number?: string;
-  };
-};
-
 export default async function Page() {
-  const publicSettings = await apiGet<PublicSettings>("/settings/public/");
-  const whatsappNumber = (publicSettings?.contact?.whatsapp_number || "").trim();
-  const whatsappDigits = whatsappNumber.replace(/\D/g, "");
-  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "#";
 
   const contactPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: "Contact SaaSGlobal Hub",
-    url: "https://www.saasglobalhub.com/contact",
+    url: getSiteUrl("/contact"),
     inLanguage: "en",
     mainEntity: {
       "@type": "Organization",
       name: "SaaSGlobal Hub",
-      url: "https://www.saasglobalhub.com",
-      logo: "https://www.saasglobalhub.com/saasglobalhublogo.png",
+      url: env.siteUrl,
+      logo: getSiteUrl("/saasglobalhublogo.png"),
       address: {
         "@type": "PostalAddress",
-        streetAddress: "828 Lane Allen Rd, Ste 219",
-        addressLocality: "Lexington",
-        addressRegion: "KY",
-        postalCode: "40504",
-        addressCountry: "US",
+        streetAddress: env.officeStreetAddress,
+        addressLocality: env.officeCity,
+        addressRegion: env.officeRegion,
+        postalCode: env.officePostalCode,
+        addressCountry: env.officeCountry,
       },
       contactPoint: [
         {
           "@type": "ContactPoint",
           contactType: "sales",
-          email: "support@saasglobalhub.com",
-          areaServed: "US",
+          email: env.supportEmail,
+          areaServed: env.officeCountry,
           availableLanguage: ["English"],
         },
       ],
       sameAs: [
-        "https://twitter.com/saasglobalhub",
-        "https://www.linkedin.com/company/saasglobalhub",
-        "https://t.me/saasglobalhub",
+        env.twitterUrl,
+        env.linkedInUrl,
+        env.telegramUrl,
       ],
     },
   };
@@ -106,8 +96,8 @@ export default async function Page() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.saasglobalhub.com/" },
-      { "@type": "ListItem", position: 2, name: "Contact", item: "https://www.saasglobalhub.com/contact" },
+      { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Contact", item: getSiteUrl("/contact") },
     ],
   };
 
@@ -145,12 +135,12 @@ export default async function Page() {
             </SupportWhatsAppLink>
 
             <a
-              href="mailto:support@saasglobalhub.com"
+              href={`mailto:${env.supportEmail}`}
               className="group rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
               aria-label="Email SaaSGlobal Hub"
             >
               <div className="text-sm font-semibold">Email</div>
-              <div className="mt-1 text-lg text-gray-900">support@saasglobalhub.com</div>
+              <div className="mt-1 text-lg text-gray-900">{env.supportEmail}</div>
               <div className="mt-2 text-xs text-gray-600">Replies within 24–48h (business days)</div>
               <div className="mt-4 inline-block rounded-md bg-black px-4 py-2 text-white shadow transition">
                 Send an Email
@@ -168,7 +158,7 @@ export default async function Page() {
 
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <a
-                href="https://twitter.com/saasglobalhub"
+                href={env.twitterUrl}
                 target="_blank"
                 rel="noopener noreferrer me"
                 className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
@@ -187,7 +177,7 @@ export default async function Page() {
               </a>
 
               <a
-                href="https://www.linkedin.com/company/saasglobalhub"
+                href={env.linkedInUrl}
                 target="_blank"
                 rel="noopener noreferrer me"
                 className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
@@ -206,7 +196,7 @@ export default async function Page() {
               </a>
 
               <a
-                href="https://t.me/saasglobalhub"
+                href={env.telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer me"
                 className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
@@ -232,7 +222,7 @@ export default async function Page() {
             <div className="rounded-xl border bg-white p-6 shadow-xl">
               <h2 className="text-xl font-semibold md:text-2xl">Our Address</h2>
               <p className="mt-2 text-sm text-gray-700">
-                828 Lane Allen Rd, Ste 219, Lexington, Kentucky 40504, US
+                {env.officeAddress}
               </p>
 
               <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
