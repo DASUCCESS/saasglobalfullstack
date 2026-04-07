@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -30,7 +30,7 @@ function statusPill(status: Order["status"]) {
   return "border-red-200 bg-red-100 text-red-800";
 }
 
-export default function OrdersPage() {
+function OrdersPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -58,7 +58,10 @@ export default function OrdersPage() {
     if (search) query.set("search", search);
     if (ordering) query.set("ordering", ordering);
 
-    apiGetResult<PaginatedResponse<Order>>(`/dashboard/?${query.toString()}`, token).then((res) => {
+    apiGetResult<PaginatedResponse<Order>>(
+      `/dashboard/?${query.toString()}`,
+      token
+    ).then((res) => {
       if (!res.ok) {
         setError(res.error?.detail || "Failed to load orders.");
         return;
@@ -74,11 +77,14 @@ export default function OrdersPage() {
 
   const applyQuery = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
+
     Object.entries(updates).forEach(([k, v]) => {
       if (!v || v === "all") params.delete(k);
       else params.set(k, v);
     });
+
     if (!params.get("page")) params.set("page", "1");
+
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -102,7 +108,9 @@ export default function OrdersPage() {
             notificationCount={notificationCount}
             actionSlot={
               <button
-                onClick={() => applyQuery({ search: searchInput || null, page: "1" })}
+                onClick={() =>
+                  applyQuery({ search: searchInput || null, page: "1" })
+                }
                 className="h-12 cursor-pointer border border-slate-200 bg-brand-yellow px-5 text-sm font-semibold text-slate-900 shadow-lg transition duration-300 hover:scale-105"
               >
                 Search
@@ -120,7 +128,9 @@ export default function OrdersPage() {
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
                 <button
-                  onClick={() => applyQuery({ search: searchInput || null, page: "1" })}
+                  onClick={() =>
+                    applyQuery({ search: searchInput || null, page: "1" })
+                  }
                   className="cursor-pointer border border-slate-200 bg-brand-yellow px-4 py-2 font-medium text-slate-900"
                 >
                   Search
@@ -130,7 +140,9 @@ export default function OrdersPage() {
               <select
                 className="border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-white/5"
                 value={status}
-                onChange={(e) => applyQuery({ status: e.target.value, page: "1" })}
+                onChange={(e) =>
+                  applyQuery({ status: e.target.value, page: "1" })
+                }
               >
                 <option value="all">All statuses</option>
                 <option value="paid">Paid</option>
@@ -141,7 +153,9 @@ export default function OrdersPage() {
               <select
                 className="border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-white/5"
                 value={ordering}
-                onChange={(e) => applyQuery({ ordering: e.target.value, page: "1" })}
+                onChange={(e) =>
+                  applyQuery({ ordering: e.target.value, page: "1" })
+                }
               >
                 <option value="-created_at">Latest first</option>
                 <option value="created_at">Oldest first</option>
@@ -151,7 +165,14 @@ export default function OrdersPage() {
 
               <button
                 className="cursor-pointer border border-slate-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-white/5"
-                onClick={() => applyQuery({ status: null, search: null, ordering: "-created_at", page: "1" })}
+                onClick={() =>
+                  applyQuery({
+                    status: null,
+                    search: null,
+                    ordering: "-created_at",
+                    page: "1",
+                  })
+                }
               >
                 Reset
               </button>
@@ -165,7 +186,10 @@ export default function OrdersPage() {
               ) : null}
 
               {(payload?.results || []).map((order) => (
-                <article key={order.id} className="border border-slate-200 p-4 dark:border-white/10">
+                <article
+                  key={order.id}
+                  className="border border-slate-200 p-4 dark:border-white/10"
+                >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                       <p className="text-lg font-semibold">{order.product_name}</p>
@@ -175,7 +199,9 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className={`border px-2.5 py-1 text-xs ${statusPill(order.status)}`}>
+                      <span
+                        className={`border px-2.5 py-1 text-xs ${statusPill(order.status)}`}
+                      >
                         {order.status.toUpperCase()}
                       </span>
                       {order.unread_admin_messages > 0 ? (
@@ -229,5 +255,29 @@ export default function OrdersPage() {
         </main>
       )}
     </DashboardShell>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardShell>
+          {() => (
+            <main className="space-y-6">
+              <section className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0b1424]/90">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 w-48 bg-slate-200 dark:bg-white/10" />
+                  <div className="h-12 w-full bg-slate-200 dark:bg-white/10" />
+                  <div className="h-32 w-full bg-slate-200 dark:bg-white/10" />
+                </div>
+              </section>
+            </main>
+          )}
+        </DashboardShell>
+      }
+    >
+      <OrdersPageContent />
+    </Suspense>
   );
 }
