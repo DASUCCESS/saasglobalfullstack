@@ -20,10 +20,17 @@ export type PaginatedResponse<T> = {
   results: T[];
 };
 
-function defaultCacheForPath(path: string): RequestCache {
-  if (path.startsWith("/products-page/") || path.startsWith("/settings/public/") || path.startsWith("/products/") && path.includes("?")) {
+function defaultCacheForPath(path: string, hasToken: boolean): RequestCache {
+  if (hasToken) return "no-store";
+
+  if (
+    path.startsWith("/products-page/") ||
+    path.startsWith("/settings/public/") ||
+    (path.startsWith("/products/") && (path.includes("?") || /^\/products\/[^/]+\/?$/.test(path)))
+  ) {
     return "force-cache";
   }
+
   return "no-store";
 }
 
@@ -38,7 +45,7 @@ async function apiRequestDetailed<T>(
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       method,
-      cache: options?.cache || defaultCacheForPath(path),
+      cache: options?.cache || defaultCacheForPath(path, !!token),
       signal: options?.signal,
       headers: {
         ...(payload !== undefined ? { "Content-Type": "application/json" } : {}),
@@ -52,26 +59,93 @@ async function apiRequestDetailed<T>(
       return {
         ok: false,
         data: null,
-        error: { status: response.status, detail: body?.detail || "Request failed" },
+        error: {
+          status: response.status,
+          detail: body?.detail || "Request failed",
+        },
       };
     }
-    return { ok: true, data: body as T, error: null };
+
+    return {
+      ok: true,
+      data: body as T,
+      error: null,
+    };
   } catch (error) {
     if ((error as Error).name === "AbortError") {
-      return { ok: false, data: null, error: { status: 499, detail: "Request aborted" } };
+      return {
+        ok: false,
+        data: null,
+        error: {
+          status: 499,
+          detail: "Request aborted",
+        },
+      };
     }
-    return { ok: false, data: null, error: { status: 0, detail: "Network error" } };
+
+    return {
+      ok: false,
+      data: null,
+      error: {
+        status: 0,
+        detail: "Network error",
+      },
+    };
   }
 }
 
-async function apiRequest<T>(path: string, options?: { method?: HttpMethod; payload?: unknown; token?: string; cache?: RequestCache; signal?: AbortSignal }): Promise<T | null> {
+async function apiRequest<T>(
+  path: string,
+  options?: { method?: HttpMethod; payload?: unknown; token?: string; cache?: RequestCache; signal?: AbortSignal }
+): Promise<T | null> {
   const res = await apiRequestDetailed<T>(path, options);
   return res.data;
+}
+
+export async function apiUploadResult<T>(path: string, formData: FormData, token?: string): Promise<ApiResult<T>> {
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        ...(token ? { Authorization: `Token ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return {
+        ok: false,
+        data: null,
+        error: {
+          status: response.status,
+          detail: body?.detail || "Upload failed",
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      data: body as T,
+      error: null,
+    };
+  } catch {
+    return {
+      ok: false,
+      data: null,
+      error: {
+        status: 0,
+        detail: "Network error",
+      },
+    };
+  }
 }
 
 export async function apiGet<T>(path: string, token?: string, cache?: RequestCache, signal?: AbortSignal): Promise<T | null> {
   return apiRequest<T>(path, { method: "GET", token, cache, signal });
 }
+
 export async function apiGetResult<T>(path: string, token?: string, cache?: RequestCache, signal?: AbortSignal): Promise<ApiResult<T>> {
   return apiRequestDetailed<T>(path, { method: "GET", token, cache, signal });
 }
@@ -79,6 +153,7 @@ export async function apiGetResult<T>(path: string, token?: string, cache?: Requ
 export async function apiPost<T>(path: string, payload: unknown, token?: string): Promise<T | null> {
   return apiRequest<T>(path, { method: "POST", payload, token });
 }
+
 export async function apiPostResult<T>(path: string, payload: unknown, token?: string): Promise<ApiResult<T>> {
   return apiRequestDetailed<T>(path, { method: "POST", payload, token });
 }
@@ -86,6 +161,7 @@ export async function apiPostResult<T>(path: string, payload: unknown, token?: s
 export async function apiPatch<T>(path: string, payload: unknown, token?: string): Promise<T | null> {
   return apiRequest<T>(path, { method: "PATCH", payload, token });
 }
+
 export async function apiPatchResult<T>(path: string, payload: unknown, token?: string): Promise<ApiResult<T>> {
   return apiRequestDetailed<T>(path, { method: "PATCH", payload, token });
 }

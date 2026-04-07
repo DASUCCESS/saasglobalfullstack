@@ -1,39 +1,65 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { apiPost } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import ToastViewport from "@/components/admin/ui/ToastViewport";
+import { apiPostResult } from "@/lib/api";
+import { consumePostLoginPath, setToken } from "@/lib/auth";
+import { toast } from "@/lib/toast";
+
+type GoogleLoginResponse = {
+  token: string;
+  user_id: number;
+  is_admin: boolean;
+  next_path: string;
+};
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [error, setError] = useState("");
 
-  const onLogin = async () => {
-    const res = await apiPost<{ token: string; is_admin: boolean }>("/auth/login/", { email, password });
-    if (!res) return alert("Invalid credentials");
-    setToken(res.token);
-    window.location.href = res.is_admin ? "/admin/overview" : "/dashboard";
-  };
+  const nextPath = useMemo(() => searchParams.get("next") || "", [searchParams]);
 
-  const onGoogle = async () => {
-    const googleId = `google-${Date.now()}`;
-    const res = await apiPost<{ token: string }>("/auth/google/", { email, full_name: email.split("@")[0], google_id: googleId });
-    if (!res) return alert("Google sign-in failed");
-    setToken(res.token);
-    window.location.href = "/dashboard";
+  const onCredential = async (credential: string) => {
+    setError("");
+    const res = await apiPostResult<GoogleLoginResponse>("/auth/google/", {
+      credential,
+      next_path: nextPath,
+    });
+
+    if (!res.ok || !res.data) {
+      const message = res.error?.detail || "Google sign-in failed.";
+      setError(message);
+      toast.error(message, "Login failed");
+      return;
+    }
+
+    setToken(res.data.token);
+    toast.success("Login successful.", "Welcome back");
+
+    const target = res.data.next_path || nextPath || consumePostLoginPath() || (res.data.is_admin ? "/admin/overview" : "/dashboard");
+    router.replace(target);
   };
 
   return (
-    <main className="min-h-screen grid place-items-center bg-gray-50 px-4">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
-        <h1 className="text-2xl font-bold">Login</h1>
-        <input className="w-full mt-4 border rounded-lg px-3 py-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" className="w-full mt-3 border rounded-lg px-3 py-2" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button onClick={onLogin} className="w-full mt-4 py-2 rounded-lg bg-black text-white">Login</button>
-        <button onClick={onGoogle} className="w-full mt-2 py-2 rounded-lg border">Continue with Google</button>
-        <p className="text-sm mt-3">No account? <Link href="/auth/signup" className="underline">Sign up</Link></p>
-      </div>
-    </main>
+    <>
+      <ToastViewport />
+      <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
+          <h1 className="text-2xl font-bold">Continue with Google</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Sign in securely to access your products, payments, dashboard, and support conversations.
+          </p>
+
+          <div className="mt-6">
+            <GoogleSignInButton onCredential={onCredential} />
+          </div>
+
+          {error ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+        </div>
+      </main>
+    </>
   );
 }

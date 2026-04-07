@@ -1,0 +1,30 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<p class="text">
+  Hello {{ customer_name }},
+</p>
+
+<p class="text">
+  Your payment has been confirmed successfully, and your product access is now available in your dashboard.
+</p>
+
+<div class="card">
+  <div class="row">
+    <span class="label">Product</span>
+    <div class="value">{{ product_name }}</div>
+  </div>
+  <div class="row">
+    <span class="label">Order Reference</span>
+    <div class="value">{{ order_reference }}</div>
+  </div>
+</div>
+
+<p class="text">
+  You can now open your order, download the product if available, and access any delivery links or instructions attached to it.
+</p>
+
+<div class="button-wrap">
+  <a href="{{ dashboard_url }}" class="button">{{ cta_label }}</a>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ headline|default:site_name }}</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f7fb;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111827;
+      }
+      table {
+        border-spacing: 0;
+      }
+      td {
+        padding: 0;
+      }
+      .wrapper {
+        width: 100%;
+        background-color: #f5f7fb;
+        padding: 32px 12px;
+      }
+      .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+      }
+      .header {
+        background: linear-gradient(135deg, #0f172a 0%, #111827 55%, #facc15 100%);
+        padding: 28px 32px;
+      }
+      .brand {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.2;
+      }
+      .brand-sub {
+        margin-top: 6px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.82);
+      }
+      .content {
+        padding: 32px;
+      }
+      .eyebrow {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ca8a04;
+        margin-bottom: 12px;
+      }
+      .headline {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.25;
+        color: #111827;
+        margin: 0 0 12px;
+      }
+      .text {
+        font-size: 15px;
+        line-height: 1.7;
+        color: #4b5563;
+        margin: 0 0 18px;
+      }
+      .card {
+        margin: 22px 0;
+        padding: 20px;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+      }
+      .row {
+        margin-bottom: 10px;
+      }
+      .label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6b7280;
+        margin-bottom: 4px;
+      }
+      .value {
+        font-size: 15px;
+        color: #111827;
+        line-height: 1.5;
+      }
+      .button-wrap {
+        margin: 28px 0 12px;
+      }
+      .button {
+        display: inline-block;
+        background-color: #facc15;
+        color: #111827 !important;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 22px;
+        border-radius: 12px;
+      }
+      .footer {
+        padding: 24px 32px 32px;
+        border-top: 1px solid #e5e7eb;
+        background-color: #ffffff;
+      }
+      .footer-text {
+        font-size: 12px;
+        line-height: 1.7;
+        color: #6b7280;
+      }
+      .muted-link {
+        color: #374151;
+        text-decoration: underline;
+      }
+      .preview-text {
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+      }
+      @media only screen and (max-width: 640px) {
+        .content,
+        .footer,
+        .header {
+          padding: 24px 20px;
+        }
+        .headline {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="preview-text">{{ preview_text }}</div>
+    <table role="presentation" class="wrapper" width="100%">
+      <tr>
+        <td align="center">
+          <table role="presentation" class="container" width="100%">
+            <tr>
+              <td class="header">
+                <div class="brand">{{ site_name|default:"SaaS Global Hub" }}</div>
+                <div class="brand-sub">Digital products, AI support, and customer access</div>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <div class="eyebrow">Platform Update</div>
+                <h1 class="headline">{{ headline }}</h1>
+
+                {% block content %}{% endblock %}
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <div class="footer-text">
+                  You are receiving this email because of your activity on {{ site_name|default:"SaaS Global Hub" }}.
+                </div>
+                <div class="footer-text" style="margin-top: 8px;">
+                  Please do not reply directly to this email unless your support process is configured for it.
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

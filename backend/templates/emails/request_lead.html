@@ -1,0 +1,51 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<p class="text">
+  A new request or feedback entry has been submitted through the platform.
+</p>
+
+<div class="card">
+  <div class="row">
+    <span class="label">Full Name</span>
+    <div class="value">{{ full_name|default:"-" }}</div>
+  </div>
+
+  <div class="row">
+    <span class="label">Company</span>
+    <div class="value">{{ company|default:"-" }}</div>
+  </div>
+
+  <div class="row">
+    <span class="label">Email</span>
+    <div class="value">{{ email|default:"-" }}</div>
+  </div>
+
+  <div class="row">
+    <span class="label">Request Type</span>
+    <div class="value">{{ request_type|default:"-" }}</div>
+  </div>
+
+  <div class="row">
+    <span class="label">Urgency</span>
+    <div class="value">{{ urgency|default:"-" }}</div>
+  </div>
+
+  <div class="row">
+    <span class="label">Budget</span>
+    <div class="value">{{ budget|default:"-" }}</div>
+  </div>
+
+  <div class="row" style="margin-bottom: 0;">
+    <span class="label">Channel</span>
+    <div class="value">{{ channel|default:"-" }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row" style="margin-bottom: 0;">
+    <span class="label">Request Details</span>
+    <div class="value" style="white-space: pre-line;">{{ details|default:"-" }}</div>
+  </div>
+</div>
+{% endblock %}

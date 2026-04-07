@@ -1,0 +1,30 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<p class="text">
+  Hello {{ customer_name }},
+</p>
+
+<p class="text">
+  We could not confirm your payment for this product. This can happen if the payment was abandoned, declined, interrupted, or is still awaiting provider confirmation.
+</p>
+
+<div class="card">
+  <div class="row">
+    <span class="label">Product</span>
+    <div class="value">{{ product_name }}</div>
+  </div>
+  <div class="row">
+    <span class="label">Order Reference</span>
+    <div class="value">{{ order_reference }}</div>
+  </div>
+</div>
+
+<p class="text">
+  You can return to the product page and try again when ready.
+</p>
+
+<div class="button-wrap">
+  <a href="{{ product_url }}" class="button">{{ cta_label }}</a>
+</div>
+{% endblock %}

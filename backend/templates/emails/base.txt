@@ -1,0 +1,7 @@
+{{ site_name|default:"SaaSGlobal Hub" }}
+
+{{ headline }}
+
+This is an automated update related to your activity on the platform.
+
+Please log in to your dashboard for the latest status and actions.

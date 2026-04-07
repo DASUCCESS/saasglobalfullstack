@@ -1,0 +1,34 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<p class="text">
+  Hello {{ customer_name }},
+</p>
+
+<p class="text">
+  You received a new support reply on your order conversation.
+</p>
+
+<div class="card">
+  <div class="row">
+    <span class="label">Product</span>
+    <div class="value">{{ product_name }}</div>
+  </div>
+  <div class="row">
+    <span class="label">Order Reference</span>
+    <div class="value">{{ order_reference }}</div>
+  </div>
+  <div class="row">
+    <span class="label">Reply From</span>
+    <div class="value">{{ sender_name }}</div>
+  </div>
+</div>
+
+<p class="text">
+  Open the conversation to review the message and continue the discussion.
+</p>
+
+<div class="button-wrap">
+  <a href="{{ order_url }}" class="button">{{ cta_label }}</a>
+</div>
+{% endblock %}
