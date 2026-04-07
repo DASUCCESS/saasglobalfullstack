@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import FloatingActions from "@/components/sections/FloatingActions";
+import ToastViewport from "@/components/ToastView";
 
 export const metadata = {
   title: {
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         {children}
+        <ToastViewport />
         <FloatingActions />
       </body>
     </html>

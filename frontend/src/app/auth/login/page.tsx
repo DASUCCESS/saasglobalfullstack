@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import ToastViewport from "@/components/admin/ui/ToastViewport";
 import { apiPostResult } from "@/lib/api";
 import { consumePostLoginPath, setToken } from "@/lib/auth";
 import { toast } from "@/lib/toast";
@@ -44,8 +43,6 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <ToastViewport />
       <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
         <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
           <h1 className="text-2xl font-bold">Continue with Google</h1>
@@ -60,6 +57,5 @@ export default function LoginPage() {
           {error ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
         </div>
       </main>
-    </>
   );
 }

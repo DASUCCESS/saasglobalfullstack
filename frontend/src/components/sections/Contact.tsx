@@ -1,11 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, MessageSquare, ArrowUpRight } from "lucide-react";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
+import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 
 export default function Contact() {
   const ADDRESS = "828 Lane Allen Rd, Ste 219, Lexington, Kentucky 40504, US";
   const EMAIL = "support@saasglobalhub.com";
-  const PHONE = "+1 716 342 0826";
 
   return (
     <section id="contact" className="py-20 bg-white">
@@ -81,21 +82,14 @@ export default function Contact() {
               <Phone className="w-6 h-6 text-brand-yellow mt-1" />
               <div>
                 <p className="font-semibold text-gray-900">Phone</p>
-                <a href={`tel:${PHONE}`} className="text-gray-700 mt-1 block hover:underline">
-                  {PHONE}
-                </a>
+                <SupportPhoneLink className="text-gray-700 mt-1 block hover:underline" />
               </div>
             </div>
 
-            <a
-              href="https://wa.me/17163420826"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 bg-brand-yellow text-black px-4 py-2 rounded-lg font-semibold shadow-card hover:shadow-hover hover:scale-105 transition w-fit cursor-pointer"
-            >
+            <SupportWhatsAppLink className="mt-4 inline-flex items-center gap-2 bg-brand-yellow text-black px-4 py-2 rounded-lg font-semibold shadow-card hover:shadow-hover hover:scale-105 transition w-fit cursor-pointer">
               <MessageSquare className="w-5 h-5" />
               WhatsApp
-            </a>
+            </SupportWhatsAppLink>
           </motion.div>
         </div>
       </div>

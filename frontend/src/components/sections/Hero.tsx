@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion, useReducedMotion, type MotionProps } from "framer-motion";
 import { MessageCircle, Package } from "lucide-react";
+import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 
 // Easing constants
 const EASE_OUT: readonly [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -99,13 +100,10 @@ export default function Hero() {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-4">
-              <a
-                href="https://wa.me/17163420826"
-                className="inline-flex items-center gap-2 bg-brand-yellow text-black px-6 py-3 rounded-lg font-semibold shadow-[0_12px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] hover:scale-105 transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-yellow"
-              >
+              <SupportWhatsAppLink className="inline-flex items-center gap-2 bg-brand-yellow text-black px-6 py-3 rounded-lg font-semibold shadow-[0_12px_30px_rgba(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.16)] hover:scale-105 transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-yellow">
                 <MessageCircle className="h-5 w-5" aria-hidden />
                 <span>Chat on WhatsApp</span>
-              </a>
+              </SupportWhatsAppLink>
 
               <a
                 href="#products"

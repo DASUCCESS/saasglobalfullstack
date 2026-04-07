@@ -1,6 +1,7 @@
 // src/app/privacy/page.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import Link from "next/link";
 import Script from "next/script";
 
@@ -113,7 +114,7 @@ export default function PrivacyPage() {
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {[
               { h: "Who we are", p: "SaaSGlobal Hub LLC, Lexington, Kentucky, USA" },
-              { h: "How to reach us", p: "support@saasglobalhub.com · +1 716 342 0826" },
+              { h: "How to reach us", p: "support@saasglobalhub.com" },
               { h: "Your choices", p: "Access, delete, correct, opt-out of sales/sharing" },
             ].map((x) => (
               <div
@@ -121,7 +122,15 @@ export default function PrivacyPage() {
                 className="p-4 sm:p-5 rounded-xl border bg-white shadow-xl md:hover:scale-[1.01] transition will-change-transform"
               >
                 <div className="text-sm sm:text-base md:text-lg font-semibold">{x.h}</div>
-                <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">{x.p}</div>
+                <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">
+                  {x.h === "How to reach us" ? (
+                    <>
+                      support@saasglobalhub.com · <SupportPhoneLink />
+                    </>
+                  ) : (
+                    x.p
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -248,7 +257,7 @@ export default function PrivacyPage() {
               <p>We may update this policy periodically. We will post updates and revise the effective date. If changes materially affect your rights, we will provide additional notice.</p>
 
               <h2 id="contact" className="scroll-mt-24">How to contact us</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a> · Phone: <a className="underline" href="tel:+17163420826">+1 716 342 0826</a></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
                 <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise customer? Need a DPA or security questionnaire? Contact <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a>.</p>

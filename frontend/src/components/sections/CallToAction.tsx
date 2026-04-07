@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { MessageSquare } from "lucide-react";
+import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 
 export default function CallToAction() {
   return (
@@ -38,13 +39,10 @@ export default function CallToAction() {
           viewport={{ once: true }}
           className="mt-8 flex flex-col sm:flex-row justify-center gap-4"
         >
-          <a
-            href="https://wa.me/17163420826"
-            className="flex items-center justify-center gap-2 bg-brand-yellow text-black px-6 py-3 rounded-lg font-semibold shadow-card hover:shadow-hover hover:scale-105 transition-transform duration-300"
-          >
+          <SupportWhatsAppLink className="flex items-center justify-center gap-2 bg-brand-yellow text-black px-6 py-3 rounded-lg font-semibold shadow-card hover:shadow-hover hover:scale-105 transition-transform duration-300">
             <MessageSquare className="w-5 h-5" />
             Chat on WhatsApp
-          </a>
+          </SupportWhatsAppLink>
           <a
             href="#products"
             className="border border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-black transition-colors duration-300"

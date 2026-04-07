@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Script from "next/script";
 import Link from "next/link";
+import { apiGet } from "@/lib/api";
 
 function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -50,7 +51,18 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function Page() {
+type PublicSettings = {
+  contact?: {
+    whatsapp_number?: string;
+  };
+};
+
+export default async function Page() {
+  const publicSettings = await apiGet<PublicSettings>("/settings/public/");
+  const whatsappNumber = (publicSettings?.contact?.whatsapp_number || "").trim();
+  const whatsappDigits = whatsappNumber.replace(/\D/g, "");
+  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "#";
+
   const contactPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
@@ -75,7 +87,7 @@ export default function Page() {
           "@type": "ContactPoint",
           contactType: "sales",
           email: "support@saasglobalhub.com",
-          telephone: "+1-716-342-0826",
+          telephone: whatsappNumber,
           areaServed: "US",
           availableLanguage: ["English"],
         },
@@ -123,14 +135,14 @@ export default function Page() {
         <section className="py-8 border-t">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
             <a
-              href="https://wa.me/17163420826"
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="group p-6 rounded-xl border bg-black text-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
               aria-label="Chat with us on WhatsApp"
             >
               <div className="text-sm font-semibold">WhatsApp</div>
-              <div className="mt-1 text-lg">+1 716 342 0826</div>
+              <div className="mt-1 text-lg">{whatsappNumber || "Not available"}</div>
               <div className="mt-2 text-xs opacity-80">Fastest response</div>
               <div className="mt-4 inline-block rounded-md bg-white text-black px-4 py-2 shadow transition">
                 Chat on WhatsApp
