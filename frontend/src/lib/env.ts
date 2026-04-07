@@ -4,7 +4,7 @@ const normalizeBaseUrl = (value: string) => value.replace(/\/$/, "");
 const siteBaseUrl = normalizeBaseUrl(SITE_URL);
 
 export const env = {
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api",
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.saasglobalhub.com/api",
   siteUrl: siteBaseUrl,
   siteName: process.env.NEXT_PUBLIC_SITE_NAME || "SaaSGlobal Hub",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@saasglobalhub.com",

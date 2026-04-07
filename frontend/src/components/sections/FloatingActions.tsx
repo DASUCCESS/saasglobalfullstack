@@ -131,9 +131,7 @@ export default function FloatingActions() {
           onClick={() => setChatOpen((prev) => !prev)}
           className="group inline-flex min-h-[52px] items-center gap-3 rounded-full border border-black bg-black px-4 py-3 text-sm font-semibold text-white shadow-2xl transition duration-200 hover:scale-105 hover:shadow-black/25 cursor-pointer sm:px-5"
         >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-yellow text-black shadow-md">
-            <Bot className="h-4 w-4" />
-          </span>
+
           <span className="max-w-[130px] truncate sm:max-w-none">{aiLabel}</span>
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
         </button>
@@ -142,9 +140,7 @@ export default function FloatingActions() {
           onClick={() => setOpen(true)}
           className="group inline-flex min-h-[52px] items-center gap-3 rounded-full border border-brand-yellow bg-brand-yellow px-4 py-3 text-sm font-semibold text-black shadow-2xl transition duration-200 hover:scale-105 hover:shadow-yellow-500/20 cursor-pointer sm:px-5"
         >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-md">
-            <Sparkles className="h-4 w-4" />
-          </span>
+
           <span>Make Request</span>
           <ChevronRight className="h-4 w-4 opacity-70 transition group-hover:translate-x-0.5" />
         </button>
@@ -166,9 +162,6 @@ export default function FloatingActions() {
             <div className="border-b border-white/10 bg-black px-4 py-4 text-white">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-yellow text-black shadow-lg">
-                    <MessageCircle className="h-5 w-5" />
-                  </div>
                   <div>
                     <p className="text-sm font-semibold">AI Agent</p>
                     <p className="text-xs text-white/70">
@@ -221,9 +214,6 @@ export default function FloatingActions() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-yellow text-black shadow-lg">
-                      <Briefcase className="h-5 w-5" />
-                    </div>
                     <div>
                       <h3 className="text-lg font-semibold sm:text-xl">
                         {step === 1 ? "Tell us what you need" : "Choose contact method"}
