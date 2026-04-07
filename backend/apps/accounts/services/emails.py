@@ -13,7 +13,10 @@ def _get_platform_email_config():
     username = (contact.smtp_username or "").strip() or getattr(settings, "EMAIL_HOST_USER", "")
     password = (contact.smtp_password or "").strip() or getattr(settings, "EMAIL_HOST_PASSWORD", "")
     use_tls = contact.smtp_use_tls if contact.smtp_host else getattr(settings, "EMAIL_USE_TLS", True)
-    use_ssl = getattr(settings, "EMAIL_USE_SSL", False)
+    configured_ssl = bool(getattr(settings, "EMAIL_USE_SSL", False))
+    use_ssl = configured_ssl
+    if contact.smtp_host:
+        use_ssl = (not use_tls and int(port) == 465) or (not use_tls and configured_ssl)
 
     sender = (
         (contact.from_email or "").strip()
@@ -60,6 +63,7 @@ def send_platform_email(
         password=config["password"],
         use_tls=config["use_tls"],
         use_ssl=config["use_ssl"],
+        timeout=getattr(settings, "EMAIL_TIMEOUT", 20),
         fail_silently=False,
     )
 

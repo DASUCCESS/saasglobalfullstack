@@ -32,7 +32,7 @@ class AdminCloudinarySettingsSerializer(serializers.ModelSerializer):
 class PublicPaymentSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentSettings
-        fields = ["stripe_public_key", "paystack_public_key", "usd_ngn_rate"]
+        fields = ["usd_ngn_rate"]
 
 
 class AdminPaymentSettingsSerializer(serializers.ModelSerializer):

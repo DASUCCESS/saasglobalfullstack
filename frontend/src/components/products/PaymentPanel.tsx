@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import ToastViewport from "@/components/admin/ui/ToastViewport";
 import { apiGetResult, apiPostResult } from "@/lib/api";
 import { getToken, setToken } from "@/lib/auth";
 import { toast } from "@/lib/toast";
@@ -180,8 +178,6 @@ export default function PaymentPanel({
 
   return (
     <>
-      <ToastViewport />
-
       <div className="mt-2 max-w-2xl rounded-2xl border bg-white p-5 shadow-xl">
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
           {authed ? (

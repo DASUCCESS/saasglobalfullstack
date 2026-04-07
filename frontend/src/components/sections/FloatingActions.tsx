@@ -1,5 +1,4 @@
 "use client";
-import ToastViewport from "@/components/ToastView";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -98,6 +97,9 @@ export default function FloatingActions() {
         toast.success("Your request was prepared successfully.", "Request sent");
         window.open(data.whatsapp_url, "_blank");
       } else {
+        if (!data?.email_sent) {
+          throw new Error(data?.email_error || "Your request was saved, but email delivery failed.");
+        }
         toast.success("Your email request was submitted successfully.", "Request sent");
       }
 
@@ -123,7 +125,6 @@ export default function FloatingActions() {
 
   return (
     <>
-     <ToastViewport />
       <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3 sm:right-6 sm:bottom-6">
         <button
           type="button"

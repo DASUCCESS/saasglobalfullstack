@@ -1,6 +1,7 @@
 // src/app/terms/page.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import Link from "next/link";
 import Script from "next/script";
 
@@ -129,14 +130,22 @@ export default function TermsPage() {
             {[
               { h: "Legal entity", p: "SaaSGlobal Hub LLC, Lexington, Kentucky, USA" },
               { h: "Contract scope", p: "Your access and use of the Services, including paid subscriptions and APIs" },
-              { h: "Support", p: "support@saasglobalhub.com · +1 716 342 0826" },
+              { h: "Support", p: "support@saasglobalhub.com" },
             ].map((x) => (
               <div
                 key={x.h}
                 className="p-4 sm:p-5 rounded-xl border bg-white shadow-xl md:hover:scale-[1.01] transition will-change-transform"
               >
                 <div className="text-sm sm:text-base md:text-lg font-semibold">{x.h}</div>
-                <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">{x.p}</div>
+                <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">
+                  {x.h === "Support" ? (
+                    <>
+                      support@saasglobalhub.com · <SupportPhoneLink />
+                    </>
+                  ) : (
+                    x.p
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -304,7 +313,7 @@ export default function TermsPage() {
               </ul>
 
               <h2 id="contact" className="scroll-mt-24">How to contact us</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:legal@saasglobalhub.com">legal@saasglobalhub.com</a> · Phone: <a className="underline" href="tel:+17163420826">+1 716 342 0826</a></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:legal@saasglobalhub.com">legal@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
                 <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise terms or a custom MSA? Contact <a className="underline" href="mailto:legal@saasglobalhub.com">legal@saasglobalhub.com</a>.</p>
