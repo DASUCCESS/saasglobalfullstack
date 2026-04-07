@@ -18,7 +18,15 @@ function normalizePhone(raw: string) {
   return value.replace(/\D/g, "");
 }
 
-export default function SupportPhoneLink({ className = "" }: { className?: string }) {
+type SupportPhoneLinkProps = {
+  className?: string;
+  asText?: boolean;
+};
+
+export default function SupportPhoneLink({
+  className = "",
+  asText = false,
+}: SupportPhoneLinkProps) {
   const [phone, setPhone] = useState("");
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export default function SupportPhoneLink({ className = "" }: { className?: strin
     return phone;
   }, [phone]);
 
-  if (!href) {
+  if (!href || asText) {
     return <span className={className}>{label}</span>;
   }
 

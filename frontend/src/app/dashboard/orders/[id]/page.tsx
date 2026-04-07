@@ -54,16 +54,23 @@ export default function OrderConversationPage() {
   const token = getToken();
   const page = Number(searchParams.get("page") || "1");
   const feedRef = useRef<HTMLDivElement>(null);
+  const autoVerifyTriggeredRef = useRef(false);
 
   const [messages, setMessages] = useState<PaginatedResponse<Message> | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [autoVerificationFailed, setAutoVerificationFailed] = useState(false);
 
   const paymentParam = searchParams.get("payment");
+  const providerParam = searchParams.get("provider") || "";
   const sessionId = searchParams.get("session_id") || "";
   const reference = searchParams.get("reference") || "";
+
+  const hasRedirectVerificationParams = useMemo(() => {
+    return Boolean(paymentParam || sessionId || reference || providerParam);
+  }, [paymentParam, sessionId, reference, providerParam]);
 
   const clearPaymentQueryParams = useCallback(() => {
     const qp = new URLSearchParams(searchParams.toString());
@@ -76,7 +83,7 @@ export default function OrderConversationPage() {
   }, [pathname, router, searchParams]);
 
   const load = useCallback(async () => {
-    if (!params?.id || !token) return;
+    if (!params?.id || !token) return null;
 
     const res = await apiGetResult<MessagesPayload>(
       `/dashboard/orders/${params.id}/messages/?page=${page}&page_size=${PAGE_SIZE}`,
@@ -85,7 +92,7 @@ export default function OrderConversationPage() {
 
     if (!res.ok || !res.data) {
       setError(res.error?.detail || "Failed to load conversation.");
-      return;
+      return null;
     }
 
     setError("");
@@ -96,6 +103,8 @@ export default function OrderConversationPage() {
     if (latestId) {
       await apiPostResult(`/dashboard/orders/${params.id}/mark-read/`, { last_message_id: latestId }, token);
     }
+
+    return res.data;
   }, [params?.id, token, page]);
 
   useEffect(() => {
@@ -115,34 +124,98 @@ export default function OrderConversationPage() {
     return () => clearInterval(interval);
   }, [load]);
 
-  const retryVerification = useCallback(async () => {
-    if (!token || !order || verifyingPayment) return;
+  const runVerification = useCallback(
+    async (source: "auto" | "manual") => {
+      if (!token || !params?.id || verifyingPayment) return false;
 
-    setVerifyingPayment(true);
-    setError("");
+      const paymentReference = reference || order?.payment_reference || "";
+      if (!paymentReference) return false;
 
-    const res = await apiPostResult<{ status: string }>(
-      "/payments/verify/",
-      {
-        payment_reference: reference || order.payment_reference,
-        session_id: sessionId,
-      },
-      token
-    );
+      setVerifyingPayment(true);
+      setError("");
 
-    setVerifyingPayment(false);
+      const res = await apiPostResult<{ status: string }>(
+        "/payments/verify/",
+        {
+          payment_reference: paymentReference,
+          session_id: sessionId,
+        },
+        token
+      );
 
-    if (!res.ok) {
-      setError(res.error?.detail || "Could not verify payment.");
+      setVerifyingPayment(false);
+
+      if (!res.ok) {
+        const message = res.error?.detail || "Could not verify payment.";
+        setError(message);
+
+        if (source === "auto") {
+          setAutoVerificationFailed(true);
+        }
+
+        return false;
+      }
+
+      const refreshed = await load();
+
+      if (source === "auto") {
+        setAutoVerificationFailed(false);
+      }
+
+      if (paymentParam === "success" || hasRedirectVerificationParams) {
+        clearPaymentQueryParams();
+      }
+
+      if (refreshed?.order?.status === "paid") {
+        setError("");
+      }
+
+      return true;
+    },
+    [
+      token,
+      params?.id,
+      verifyingPayment,
+      reference,
+      order?.payment_reference,
+      sessionId,
+      load,
+      paymentParam,
+      hasRedirectVerificationParams,
+      clearPaymentQueryParams,
+    ]
+  );
+
+  useEffect(() => {
+    if (!token || !params?.id) return;
+    if (!hasRedirectVerificationParams) return;
+    if (autoVerifyTriggeredRef.current) return;
+    if (!order) return;
+
+    autoVerifyTriggeredRef.current = true;
+
+    if (order.status === "paid") {
+      clearPaymentQueryParams();
+      setAutoVerificationFailed(false);
       return;
     }
 
-    await load();
+    runVerification("auto");
+  }, [
+    token,
+    params?.id,
+    hasRedirectVerificationParams,
+    order,
+    clearPaymentQueryParams,
+    runVerification,
+  ]);
 
-    if (paymentParam === "success") {
-      clearPaymentQueryParams();
+  const retryVerification = useCallback(async () => {
+    const ok = await runVerification("manual");
+    if (ok) {
+      setAutoVerificationFailed(false);
     }
-  }, [token, order, verifyingPayment, reference, sessionId, load, paymentParam, clearPaymentQueryParams]);
+  }, [runVerification]);
 
   const sendMessage = async () => {
     if (!params?.id || !token || !text.trim()) return;
@@ -180,6 +253,15 @@ export default function OrderConversationPage() {
     qp.set("page", String(next));
     router.push(`${pathname}?${qp.toString()}`);
   };
+
+  const showRetryVerification =
+    order?.status === "pending" && autoVerificationFailed && !verifyingPayment;
+
+  const showAutoVerifyingNotice =
+    order?.status === "pending" &&
+    hasRedirectVerificationParams &&
+    verifyingPayment &&
+    !autoVerificationFailed;
 
   return (
     <DashboardShell>
@@ -225,13 +307,24 @@ export default function OrderConversationPage() {
                     Amount: ${order.amount} / ₦{order.amount_ngn}
                   </p>
 
-                  {order.status === "pending" ? (
+                  {showAutoVerifyingNotice ? (
                     <div className="border border-[rgba(244,180,0,0.40)] bg-[rgba(244,180,0,0.10)] p-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-yellow-800 dark:text-brand-yellow">
-                        Payment pending
+                        Verifying payment
                       </p>
                       <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                        If you already completed payment, click retry verification to refresh your payment status and unlock access.
+                        We are automatically verifying your payment and unlocking access.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {showRetryVerification ? (
+                    <div className="border border-[rgba(244,180,0,0.40)] bg-[rgba(244,180,0,0.10)] p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-yellow-800 dark:text-brand-yellow">
+                        Verification needed
+                      </p>
+                      <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                        Automatic payment verification did not complete successfully. Click below to try again.
                       </p>
 
                       <button
@@ -280,7 +373,7 @@ export default function OrderConversationPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-2xl font-bold">Order Conversation</h1>
 
-                {order?.status === "pending" ? (
+                {showRetryVerification ? (
                   <button
                     type="button"
                     onClick={retryVerification}
@@ -292,7 +385,13 @@ export default function OrderConversationPage() {
                 ) : null}
               </div>
 
-              {verifyingPayment ? (
+              {showAutoVerifyingNotice ? (
+                <div className="mt-3 border border-[rgba(244,180,0,0.40)] bg-[rgba(244,180,0,0.10)] p-3 text-sm text-slate-800 dark:text-slate-200">
+                  Verifying your payment automatically and unlocking access...
+                </div>
+              ) : null}
+
+              {verifyingPayment && !showAutoVerifyingNotice ? (
                 <div className="mt-3 border border-[rgba(244,180,0,0.40)] bg-[rgba(244,180,0,0.10)] p-3 text-sm text-slate-800 dark:text-slate-200">
                   Verifying your payment and unlocking access...
                 </div>

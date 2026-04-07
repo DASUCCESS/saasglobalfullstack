@@ -109,7 +109,7 @@ export default function Products() {
         .slice(0, 3)
         .map((p, index) => ({
           title: p.name,
-          description: p.short_description || p.tagline || "Explore this backend-managed product offering.",
+          description: p.short_description || p.tagline || "Explore our product offering.",
           link: `/products/${p.slug}`,
           icon: cardStyles[index % cardStyles.length].icon,
           gradient: cardStyles[index % cardStyles.length].gradient,

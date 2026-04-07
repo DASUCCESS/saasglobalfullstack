@@ -1,4 +1,3 @@
-// src/app/contact/page.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
@@ -14,6 +13,7 @@ function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
 function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
@@ -21,6 +21,7 @@ function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
 function TelegramIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
@@ -114,77 +115,73 @@ export default async function Page() {
     <>
       <Header />
 
-      <main className="relative bg-white text-black overflow-x-hidden">
-        {/* Fixed, clipped decorative backdrop */}
+      <main className="relative overflow-x-hidden bg-white text-black">
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-20 bg-yellow-300" />
-          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-20 bg-black" />
+          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-yellow-300 opacity-20 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-black opacity-20 blur-3xl" />
         </div>
 
-        {/* Hero */}
         <section className="relative pt-28 pb-8">
-          <div className="max-w-7xl mx-auto px-6">
-            <p className="text-xs tracking-wide uppercase text-gray-500">SaaSGlobal Hub</p>
-            <h1 className="mt-2 text-3xl md:text-5xl font-bold tracking-tight">Contact Us</h1>
-            <p className="mt-4 text-lg md:text-xl max-w-3xl">
-              Reach us via WhatsApp, email, phone, or social media. No forms,just fast, direct support.
+          <div className="mx-auto max-w-7xl px-6">
+            <p className="text-xs uppercase tracking-wide text-gray-500">SaaSGlobal Hub</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-5xl">Contact Us</h1>
+            <p className="mt-4 max-w-3xl text-lg md:text-xl">
+              Reach us via WhatsApp, email, phone, or social media. No forms, just fast, direct support.
             </p>
           </div>
         </section>
 
-        {/* Primary Channels */}
-        <section className="py-8 border-t">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SupportWhatsAppLink
-              className="group p-6 rounded-xl border bg-black text-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
-            >
+        <section className="border-t py-8">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 lg:grid-cols-2">
+            <SupportWhatsAppLink className="group rounded-xl border bg-black p-6 text-white shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105">
               <div className="text-sm font-semibold">WhatsApp</div>
-              <div className="mt-1 text-lg"><SupportPhoneLink /></div>
+              <div className="mt-1 text-lg">
+                <SupportPhoneLink asText />
+              </div>
               <div className="mt-2 text-xs opacity-80">Fastest response</div>
-              <div className="mt-4 inline-block rounded-md bg-white text-black px-4 py-2 shadow transition">
+              <div className="mt-4 inline-block rounded-md bg-white px-4 py-2 text-black shadow transition">
                 Chat on WhatsApp
               </div>
             </SupportWhatsAppLink>
 
             <a
               href="mailto:support@saasglobalhub.com"
-              className="group p-6 rounded-xl border bg-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
+              className="group rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
               aria-label="Email SaaSGlobal Hub"
             >
               <div className="text-sm font-semibold">Email</div>
               <div className="mt-1 text-lg text-gray-900">support@saasglobalhub.com</div>
               <div className="mt-2 text-xs text-gray-600">Replies within 24–48h (business days)</div>
-              <div className="mt-4 inline-block rounded-md bg-black text-white px-4 py-2 shadow transition">
+              <div className="mt-4 inline-block rounded-md bg-black px-4 py-2 text-white shadow transition">
                 Send an Email
               </div>
             </a>
           </div>
         </section>
 
-        {/* Social Media */}
-        <section className="py-8 border-t bg-gray-50">
-          <div className="max-w-7xl mx-auto px-6">
+        <section className="border-t bg-gray-50 py-8">
+          <div className="mx-auto max-w-7xl px-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl md:text-2xl font-semibold">Connect with us</h2>
+              <h2 className="text-xl font-semibold md:text-2xl">Connect with us</h2>
               <span className="text-xs text-gray-600">Official channels</span>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <a
                 href="https://twitter.com/saasglobalhub"
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="group flex items-center gap-4 p-6 rounded-xl border bg-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
+                className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
                 aria-label="SaaSGlobal Hub on Twitter"
               >
-                <div className="grid place-items-center w-11 h-11 rounded-lg" style={{ backgroundColor: "#000000" }}>
-                  <TwitterIcon className="w-6 h-6 text-white" />
+                <div className="grid h-11 w-11 place-items-center rounded-lg bg-black">
+                  <TwitterIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold">Twitter</div>
                   <div className="text-sm text-gray-700">@saasglobalhub</div>
                 </div>
-                <span className="inline-block rounded-md bg-black text-white px-3 py-1 text-xs shadow">
+                <span className="inline-block rounded-md bg-black px-3 py-1 text-xs text-white shadow">
                   Follow
                 </span>
               </a>
@@ -193,17 +190,17 @@ export default async function Page() {
                 href="https://www.linkedin.com/company/saasglobalhub"
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="group flex items-center gap-4 p-6 rounded-xl border bg-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
+                className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
                 aria-label="SaaSGlobal Hub on LinkedIn"
               >
-                <div className="grid place-items-center w-11 h-11 rounded-lg" style={{ backgroundColor: "#0A66C2" }}>
-                  <LinkedInIcon className="w-6 h-6 text-white" />
+                <div className="grid h-11 w-11 place-items-center rounded-lg bg-[#0A66C2]">
+                  <LinkedInIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold">LinkedIn</div>
                   <div className="text-sm text-gray-700">Company page</div>
                 </div>
-                <span className="inline-block rounded-md bg-black text-white px-3 py-1 text-xs shadow">
+                <span className="inline-block rounded-md bg-black px-3 py-1 text-xs text-white shadow">
                   Connect
                 </span>
               </a>
@@ -212,17 +209,17 @@ export default async function Page() {
                 href="https://t.me/saasglobalhub"
                 target="_blank"
                 rel="noopener noreferrer me"
-                className="group flex items-center gap-4 p-6 rounded-xl border bg-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
+                className="group flex items-center gap-4 rounded-xl border bg-white p-6 shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
                 aria-label="SaaSGlobal Hub on Telegram"
               >
-                <div className="grid place-items-center w-11 h-11 rounded-lg" style={{ backgroundColor: "#229ED9" }}>
-                  <TelegramIcon className="w-6 h-6 text-white" />
+                <div className="grid h-11 w-11 place-items-center rounded-lg bg-[#229ED9]">
+                  <TelegramIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold">Telegram</div>
                   <div className="text-sm text-gray-700">@saasglobalhub</div>
                 </div>
-                <span className="inline-block rounded-md bg-black text-white px-3 py-1 text-xs shadow">
+                <span className="inline-block rounded-md bg-black px-3 py-1 text-xs text-white shadow">
                   Join
                 </span>
               </a>
@@ -230,29 +227,28 @@ export default async function Page() {
           </div>
         </section>
 
-        {/* Address + Map */}
-        <section className="py-12 border-t">
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border bg-white shadow-xl p-6">
-              <h2 className="text-xl md:text-2xl font-semibold">Our Address</h2>
+        <section className="border-t py-12">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 lg:grid-cols-2">
+            <div className="rounded-xl border bg-white p-6 shadow-xl">
+              <h2 className="text-xl font-semibold md:text-2xl">Our Address</h2>
               <p className="mt-2 text-sm text-gray-700">
                 828 Lane Allen Rd, Ste 219, Lexington, Kentucky 40504, US
               </p>
 
-              <div className="mt-6 grid sm:grid-cols-2 gap-3 text-sm">
-                <div className="p-4 rounded-lg border bg-gray-50 shadow">
+              <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-lg border bg-gray-50 p-4 shadow">
                   <div className="font-semibold">Support</div>
                   <div className="text-gray-700">Mon–Fri · 9:00–18:00 ET</div>
                 </div>
-                <div className="p-4 rounded-lg border bg-gray-50 shadow">
+                <div className="rounded-lg border bg-gray-50 p-4 shadow">
                   <div className="font-semibold">Enterprise</div>
                   <div className="text-gray-700">SLA windows by contract</div>
                 </div>
-                <div className="p-4 rounded-lg border bg-gray-50 shadow">
+                <div className="rounded-lg border bg-gray-50 p-4 shadow">
                   <div className="font-semibold">WhatsApp</div>
                   <div className="text-gray-700">Fastest response</div>
                 </div>
-                <div className="p-4 rounded-lg border bg-gray-50 shadow">
+                <div className="rounded-lg border bg-gray-50 p-4 shadow">
                   <div className="font-semibold">Email</div>
                   <div className="text-gray-700">24–48h business days</div>
                 </div>
@@ -265,20 +261,20 @@ export default async function Page() {
               <div className="mt-6">
                 <Link
                   href="/products"
-                  className="inline-block px-5 py-3 rounded-md bg-black text-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
+                  className="inline-block rounded-md bg-black px-5 py-3 text-white shadow-xl transition transform-gpu cursor-pointer md:hover:scale-105"
                 >
                   Explore Products
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-xl border bg-white shadow-xl overflow-hidden">
+            <div className="overflow-hidden rounded-xl border bg-white shadow-xl">
               <div className="aspect-[16/9] w-full">
                 <iframe
-                  title="SaaSGlobal Hub , Lexington, KY"
+                  title="SaaSGlobal Hub, Lexington, KY"
                   src="https://www.google.com/maps?q=828+Lane+Allen+Rd,+Ste+219,+Lexington,+Kentucky+40504&output=embed"
                   loading="lazy"
-                  className="w-full h-full border-0"
+                  className="h-full w-full border-0"
                 />
               </div>
             </div>

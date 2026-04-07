@@ -32,7 +32,7 @@ export async function generateMetadata() {
 
   return {
     title: `Products | ${siteName}`,
-    description: `Explore ${visibleCount} backend-managed digital products available on ${siteName}.`,
+    description: `Explore ${visibleCount} our digital products available on ${siteName}.`,
     alternates: { canonical: "/products" },
   };
 }
@@ -50,7 +50,7 @@ export default async function ProductsIndexPage() {
             <p className="text-xs uppercase tracking-wide text-gray-500">SaaSGlobal Hub</p>
             <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Products</h1>
             <p className="mt-4 max-w-3xl text-lg md:text-xl">
-              Explore backend-managed digital products, access tools, and upcoming launches.
+              Explore our digital products, access tools, and upcoming launches.
             </p>
           </div>
         </section>

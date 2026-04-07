@@ -140,7 +140,7 @@ PRODUCTS = [
 
 
 class Command(BaseCommand):
-    help = 'Seed products shown on the current frontend into backend-managed Product entries.'
+    help = 'Seed products shown on the current frontend into our Product entries.'
 
     def handle(self, *args, **options):
         for payload in PRODUCTS:

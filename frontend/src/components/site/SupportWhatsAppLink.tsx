@@ -13,13 +13,15 @@ function normalizeDigits(raw: string) {
   return (raw || "").replace(/\D/g, "");
 }
 
+type SupportWhatsAppLinkProps = {
+  className?: string;
+  children: React.ReactNode;
+};
+
 export default function SupportWhatsAppLink({
   className = "",
   children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
+}: SupportWhatsAppLinkProps) {
   const [digits, setDigits] = useState("");
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function SupportWhatsAppLink({
   const href = useMemo(() => (digits ? `https://wa.me/${digits}` : ""), [digits]);
 
   if (!href) {
-    return <span className={className}>{children}</span>;
+    return <div className={className}>{children}</div>;
   }
 
   return (

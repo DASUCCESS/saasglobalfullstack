@@ -359,7 +359,7 @@ def _build_specific_product_answer(question: str, settings: AIAgentSettings, pro
 
         groq_answer = (
             f"{product.get('name')} is one of the current SaaSGlobal Hub products. "
-            f"It is positioned as {product.get('tagline') or 'a backend-managed software solution'}. "
+            f"It is positioned as {product.get('tagline') or 'our software solution'}. "
             f"It is designed around {feature_text}. "
             f"You can open its product detail page at /products/{product.get('slug')} to read the full breakdown."
         )
@@ -433,7 +433,7 @@ def _build_broad_product_answer(question: str, settings: AIAgentSettings, select
     if not groq_answer:
         names = ", ".join([p.get("name", "") for p in selected[:4] if p.get("name")])
         groq_answer = (
-            "SaaSGlobal Hub currently offers backend-managed software products across its live catalog. "
+            "SaaSGlobal Hub currently offers our software products across its live catalog. "
             f"Some relevant matches right now include {names}. "
             "Open any product page to view full details and delivery information."
         )
