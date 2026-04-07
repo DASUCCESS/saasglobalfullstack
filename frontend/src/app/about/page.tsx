@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import { apiGet } from "@/lib/api";
+import { env, getSiteUrl } from "@/lib/env";
 import Link from "next/link";
 import Script from "next/script";
 
@@ -16,7 +17,7 @@ export const metadata = {
     title: "About Us – SaaSGlobal Hub",
     description:
       "We build modern SaaS infrastructure and tools that help companies move faster with clarity, security, and scale.",
-    url: "https://www.saasglobalhub.com/about",
+    url: getSiteUrl("/about"),
     type: "website",
     images: [{ url: "/og-image.png" }],
     siteName: "SaaSGlobal Hub",
@@ -47,12 +48,12 @@ export default async function AboutPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "About SaaSGlobal Hub",
-    url: "https://www.saasglobalhub.com/about",
+    url: getSiteUrl("/about"),
     inLanguage: "en",
     isPartOf: {
       "@type": "WebSite",
       name: "SaaSGlobal Hub",
-      url: "https://www.saasglobalhub.com",
+      url: env.siteUrl,
     },
     dateModified: LAST_UPDATED,
     about:
@@ -63,25 +64,25 @@ export default async function AboutPage() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "SaaSGlobal Hub",
-    url: "https://www.saasglobalhub.com",
-    logo: "https://www.saasglobalhub.com/logo.png",
+    url: env.siteUrl,
+    logo: getSiteUrl("/logo.png"),
     sameAs: [
-      "https://twitter.com/saasglobalhub",
-      "https://www.linkedin.com/company/saasglobalhub",
+      env.twitterUrl,
+      env.linkedInUrl,
     ],
     address: {
       "@type": "PostalAddress",
-      streetAddress: "828 Lane Allen Rd, Ste 219",
-      addressLocality: "Lexington",
-      addressRegion: "KY",
-      postalCode: "40504",
-      addressCountry: "US",
+      streetAddress: env.officeStreetAddress,
+      addressLocality: env.officeCity,
+      addressRegion: env.officeRegion,
+      postalCode: env.officePostalCode,
+      addressCountry: env.officeCountry,
     },
     contactPoint: [
       {
         "@type": "ContactPoint",
         contactType: "customer support",
-        email: "support@saasglobalhub.com",
+        email: env.supportEmail,
         telephone: whatsappNumber,
         availableLanguage: ["English"],
       },
@@ -93,8 +94,8 @@ export default async function AboutPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.saasglobalhub.com/" },
-      { "@type": "ListItem", position: 2, name: "About", item: "https://www.saasglobalhub.com/about" },
+      { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "About", item: getSiteUrl("/about") },
     ],
   };
 
@@ -342,10 +343,10 @@ export default async function AboutPage() {
               </div>
 
               <h2 id="contact" className="scroll-mt-24">Contact</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:support@saasglobalhub.com">support@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · {env.officeAddress} · Email: <a className="underline" href={`mailto:${env.supportEmail}`}>{env.supportEmail}</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
-                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise partnership or co-build request? Email <a className="underline" href="mailto:partnerships@saasglobalhub.com">partnerships@saasglobalhub.com</a>.</p>
+                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise partnership or co-build request? Email <a className="underline" href={`mailto:${env.partnershipsEmail}`}>{env.partnershipsEmail}</a>.</p>
               </div>
             </article>
 

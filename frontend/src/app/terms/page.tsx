@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import Link from "next/link";
 import Script from "next/script";
+import { env, getSiteUrl } from "@/lib/env";
 
 // ---------- SEO ----------
 export const metadata = {
@@ -15,7 +16,7 @@ export const metadata = {
     title: "Terms of Service – SaaSGlobal Hub",
     description:
       "The agreement governing your use of SaaSGlobal Hub products and services.",
-    url: "https://www.saasglobalhub.com/terms",
+    url: getSiteUrl("/terms"),
     type: "website",
     images: [{ url: "/saasglobalhubogimage.png" }],
     siteName: "SaaSGlobal Hub",
@@ -37,12 +38,12 @@ export default function TermsPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Terms of Service",
-    url: "https://www.saasglobalhub.com/terms",
+    url: getSiteUrl("/terms"),
     inLanguage: "en",
     isPartOf: {
       "@type": "WebSite",
       name: "SaaSGlobal Hub",
-      url: "https://www.saasglobalhub.com",
+      url: env.siteUrl,
     },
     dateModified: EFFECTIVE_DATE,
     about:
@@ -53,8 +54,8 @@ export default function TermsPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.saasglobalhub.com/" },
-      { "@type": "ListItem", position: 2, name: "Terms", item: "https://www.saasglobalhub.com/terms" },
+      { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Terms", item: getSiteUrl("/terms") },
     ],
   };
 
@@ -130,7 +131,7 @@ export default function TermsPage() {
             {[
               { h: "Legal entity", p: "SaaSGlobal Hub LLC, Lexington, Kentucky, USA" },
               { h: "Contract scope", p: "Your access and use of the Services, including paid subscriptions and APIs" },
-              { h: "Support", p: "support@saasglobalhub.com" },
+              { h: "Support", p: env.supportEmail },
             ].map((x) => (
               <div
                 key={x.h}
@@ -140,7 +141,7 @@ export default function TermsPage() {
                 <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">
                   {x.h === "Support" ? (
                     <>
-                      support@saasglobalhub.com · <SupportPhoneLink />
+                      {env.supportEmail} · <SupportPhoneLink />
                     </>
                   ) : (
                     x.p
@@ -301,7 +302,7 @@ export default function TermsPage() {
               <p>If you provide feedback or suggestions, you grant us a royalty-free, perpetual license to use them without restriction or obligation.</p>
 
               <h2 id="notices" className="scroll-mt-24">Notices</h2>
-              <p>We may send notices to the email associated with your account or by posting within the Services. You will send legal notices to: SaaSGlobal Hub LLC, 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA, and a copy to <a href="mailto:legal@saasglobalhub.com" className="underline">legal@saasglobalhub.com</a>.</p>
+              <p>We may send notices to the email associated with your account or by posting within the Services. You will send legal notices to: SaaSGlobal Hub LLC, {env.officeAddress}, and a copy to <a href={`mailto:${env.legalEmail}`} className="underline">{env.legalEmail}</a>.</p>
 
               <h2 id="misc" className="scroll-mt-24">Miscellaneous</h2>
               <ul>
@@ -313,10 +314,10 @@ export default function TermsPage() {
               </ul>
 
               <h2 id="contact" className="scroll-mt-24">How to contact us</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:legal@saasglobalhub.com">legal@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · {env.officeAddress} · Email: <a className="underline" href={`mailto:${env.legalEmail}`}>{env.legalEmail}</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
-                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise terms or a custom MSA? Contact <a className="underline" href="mailto:legal@saasglobalhub.com">legal@saasglobalhub.com</a>.</p>
+                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise terms or a custom MSA? Contact <a className="underline" href={`mailto:${env.legalEmail}`}>{env.legalEmail}</a>.</p>
               </div>
             </article>
 

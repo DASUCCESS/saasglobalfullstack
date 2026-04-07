@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, MessageSquare, ArrowUpRight } from "lucide-react";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
+import { env } from "@/lib/env";
 
 export default function Contact() {
-  const ADDRESS = "828 Lane Allen Rd, Ste 219, Lexington, Kentucky 40504, US";
-  const EMAIL = "support@saasglobalhub.com";
+  const ADDRESS = env.officeAddress;
+  const EMAIL = env.supportEmail;
 
   return (
     <section id="contact" className="py-20 bg-white">

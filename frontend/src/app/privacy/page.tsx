@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import Link from "next/link";
 import Script from "next/script";
+import { env, getSiteUrl } from "@/lib/env";
 
 // ---------- SEO ----------
 export const metadata = {
@@ -15,7 +16,7 @@ export const metadata = {
     title: "Privacy Policy – SaaSGlobal Hub",
     description:
       "How SaaSGlobal Hub collects, uses, shares, and protects your information.",
-    url: "https://www.saasglobalhub.com/privacy",
+    url: getSiteUrl("/privacy"),
     type: "website",
     images: [{ url: "/saasglobalhubogimage.png" }],
     siteName: "SaaSGlobal Hub",
@@ -37,12 +38,12 @@ export default function PrivacyPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Privacy Policy",
-    url: "https://www.saasglobalhub.com/privacy",
+    url: getSiteUrl("/privacy"),
     inLanguage: "en",
     isPartOf: {
       "@type": "WebSite",
       name: "SaaSGlobal Hub",
-      url: "https://www.saasglobalhub.com",
+      url: env.siteUrl,
     },
     dateModified: EFFECTIVE_DATE,
     about: "Privacy policy describing how personal data is collected and processed.",
@@ -52,8 +53,8 @@ export default function PrivacyPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.saasglobalhub.com/" },
-      { "@type": "ListItem", position: 2, name: "Privacy", item: "https://www.saasglobalhub.com/privacy" },
+      { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Privacy", item: getSiteUrl("/privacy") },
     ],
   };
 
@@ -114,7 +115,7 @@ export default function PrivacyPage() {
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {[
               { h: "Who we are", p: "SaaSGlobal Hub LLC, Lexington, Kentucky, USA" },
-              { h: "How to reach us", p: "support@saasglobalhub.com" },
+              { h: "How to reach us", p: env.supportEmail },
               { h: "Your choices", p: "Access, delete, correct, opt-out of sales/sharing" },
             ].map((x) => (
               <div
@@ -125,7 +126,7 @@ export default function PrivacyPage() {
                 <div className="text-[13px] sm:text-sm text-gray-700 mt-1 break-words">
                   {x.h === "How to reach us" ? (
                     <>
-                      support@saasglobalhub.com · <SupportPhoneLink />
+                      {env.supportEmail} · <SupportPhoneLink />
                     </>
                   ) : (
                     x.p
@@ -245,7 +246,7 @@ export default function PrivacyPage() {
                 <li><strong>EEA/UK</strong>: access, rectification, erasure, restriction, portability, objection, consent withdrawal.</li>
                 <li><strong>U.S. states</strong> (e.g., CA, CO, CT, UT, VA): access, delete, correct, portability, opt-out of targeted ads and certain disclosures.</li>
               </ul>
-              <p>To exercise rights, email <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a>. We will verify and respond within required timelines. You may use an authorized agent where permitted.</p>
+              <p>To exercise rights, email <a className="underline" href={`mailto:${env.privacyEmail}`}>{env.privacyEmail}</a>. We will verify and respond within required timelines. You may use an authorized agent where permitted.</p>
 
               <h2 id="children" className="scroll-mt-24">Children’s privacy</h2>
               <p>Our Services are not directed to children under 13 (or the age of digital consent in your area). If you believe a child provided data, contact us to request deletion.</p>
@@ -257,10 +258,10 @@ export default function PrivacyPage() {
               <p>We may update this policy periodically. We will post updates and revise the effective date. If changes materially affect your rights, we will provide additional notice.</p>
 
               <h2 id="contact" className="scroll-mt-24">How to contact us</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · {env.officeAddress} · Email: <a className="underline" href={`mailto:${env.privacyEmail}`}>{env.privacyEmail}</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
-                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise customer? Need a DPA or security questionnaire? Contact <a className="underline" href="mailto:privacy@saasglobalhub.com">privacy@saasglobalhub.com</a>.</p>
+                <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise customer? Need a DPA or security questionnaire? Contact <a className="underline" href={`mailto:${env.privacyEmail}`}>{env.privacyEmail}</a>.</p>
               </div>
             </article>
 

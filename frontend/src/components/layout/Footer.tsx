@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin, Phone } from "lucide-react";
 import SupportPhoneLink from "@/components/site/SupportPhoneLink";
+import { env } from "@/lib/env";
 
 export default function Footer() {
   return (
@@ -80,11 +81,11 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-brand-yellow shrink-0 mt-0.5" />
-              <span>828 Lane Allen Rd, Ste 219, Lexington, KY 40504, US</span>
+              <span>{env.officeAddress}</span>
             </li>
             <li className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-brand-yellow shrink-0" />
-              support@saasglobalhub.com
+              {env.supportEmail}
             </li>
             <li className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-brand-yellow shrink-0" />
