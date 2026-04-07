@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
-import ToastViewport from "@/components/admin/ui/ToastViewport";
 import { apiGetResult, apiPostResult } from "@/lib/api";
 import { clearToken, setToken } from "@/lib/auth";
 import { toast } from "@/lib/toast";
@@ -82,8 +81,6 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <>
-      <ToastViewport />
       <main className="grid min-h-screen place-items-center bg-neutral-950 px-4 text-white">
         <div className="w-full max-w-md rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
           <h1 className="text-2xl font-bold">Admin Login</h1>
@@ -126,6 +123,5 @@ export default function AdminLoginPage() {
           ) : null}
         </div>
       </main>
-    </>
   );
 }
