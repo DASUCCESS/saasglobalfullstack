@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -39,7 +39,7 @@ function statusPill(status: Order["status"]) {
   return "border-red-200 bg-red-100 text-red-800";
 }
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -282,5 +282,29 @@ export default function DashboardPage() {
         </main>
       )}
     </DashboardShell>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardShell>
+          {() => (
+            <main className="space-y-6">
+              <section className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0b1424]/90">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 w-48 bg-slate-200 dark:bg-white/10" />
+                  <div className="h-12 w-full bg-slate-200 dark:bg-white/10" />
+                  <div className="h-32 w-full bg-slate-200 dark:bg-white/10" />
+                </div>
+              </section>
+            </main>
+          )}
+        </DashboardShell>
+      }
+    >
+      <DashboardPageContent />
+    </Suspense>
   );
 }

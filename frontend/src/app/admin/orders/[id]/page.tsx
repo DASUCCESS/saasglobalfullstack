@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { apiGetResult, apiPostResult, PaginatedResponse } from "@/lib/api";
@@ -38,7 +38,7 @@ type MessagesPayload = {
 
 const PAGE_SIZE = 20;
 
-export default function AdminOrderDetailPage() {
+function AdminOrderDetailPageContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const pathname = usePathname();
@@ -178,5 +178,25 @@ export default function AdminOrderDetailPage() {
         </section>
       </div>
     </AdminShell>
+  );
+}
+
+export default function AdminOrderDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <AdminShell title="Order Conversation">
+          <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
+            <div className="animate-pulse space-y-4">
+              <div className="h-6 w-56 rounded bg-neutral-800" />
+              <div className="h-24 w-full rounded bg-neutral-800" />
+              <div className="h-56 w-full rounded bg-neutral-800" />
+            </div>
+          </section>
+        </AdminShell>
+      }
+    >
+      <AdminOrderDetailPageContent />
+    </Suspense>
   );
 }

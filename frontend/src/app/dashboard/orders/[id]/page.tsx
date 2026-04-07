@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardShell from "@/components/dashboard/DashboardShell";
@@ -46,7 +46,7 @@ type MessagesPayload = {
 
 const PAGE_SIZE = 20;
 
-export default function OrderConversationPage() {
+function OrderConversationPageContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const pathname = usePathname();
@@ -473,5 +473,29 @@ export default function OrderConversationPage() {
         </main>
       )}
     </DashboardShell>
+  );
+}
+
+export default function OrderConversationPage() {
+  return (
+    <Suspense
+      fallback={
+        <DashboardShell>
+          {() => (
+            <main className="space-y-6">
+              <section className="border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#0b1424]/90">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 w-48 bg-slate-200 dark:bg-white/10" />
+                  <div className="h-24 w-full bg-slate-200 dark:bg-white/10" />
+                  <div className="h-48 w-full bg-slate-200 dark:bg-white/10" />
+                </div>
+              </section>
+            </main>
+          )}
+        </DashboardShell>
+      }
+    >
+      <OrderConversationPageContent />
+    </Suspense>
   );
 }
