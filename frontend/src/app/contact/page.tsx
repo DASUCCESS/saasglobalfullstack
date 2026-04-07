@@ -1,6 +1,8 @@
 // src/app/contact/page.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
+import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 import Script from "next/script";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
@@ -87,7 +89,6 @@ export default async function Page() {
           "@type": "ContactPoint",
           contactType: "sales",
           email: "support@saasglobalhub.com",
-          telephone: whatsappNumber,
           areaServed: "US",
           availableLanguage: ["English"],
         },
@@ -134,20 +135,16 @@ export default async function Page() {
         {/* Primary Channels */}
         <section className="py-8 border-t">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
+            <SupportWhatsAppLink
               className="group p-6 rounded-xl border bg-black text-white shadow-xl md:hover:scale-105 transition cursor-pointer transform-gpu"
-              aria-label="Chat with us on WhatsApp"
             >
               <div className="text-sm font-semibold">WhatsApp</div>
-              <div className="mt-1 text-lg">{whatsappNumber || "Not available"}</div>
+              <div className="mt-1 text-lg"><SupportPhoneLink /></div>
               <div className="mt-2 text-xs opacity-80">Fastest response</div>
               <div className="mt-4 inline-block rounded-md bg-white text-black px-4 py-2 shadow transition">
                 Chat on WhatsApp
               </div>
-            </a>
+            </SupportWhatsAppLink>
 
             <a
               href="mailto:support@saasglobalhub.com"
