@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { apiPostResult } from "@/lib/api";
@@ -14,7 +14,7 @@ type GoogleLoginResponse = {
   next_path: string;
 };
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -23,6 +23,7 @@ export default function LoginPage() {
 
   const onCredential = async (credential: string) => {
     setError("");
+
     const res = await apiPostResult<GoogleLoginResponse>("/auth/google/", {
       credential,
       next_path: nextPath,
@@ -38,24 +39,51 @@ export default function LoginPage() {
     setToken(res.data.token);
     toast.success("Login successful.", "Welcome back");
 
-    const target = res.data.next_path || nextPath || consumePostLoginPath() || (res.data.is_admin ? "/admin/overview" : "/dashboard");
+    const target =
+      res.data.next_path ||
+      nextPath ||
+      consumePostLoginPath() ||
+      (res.data.is_admin ? "/admin/overview" : "/dashboard");
+
     router.replace(target);
   };
 
   return (
-      <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
-        <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
-          <h1 className="text-2xl font-bold">Continue with Google</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in securely to access your products, payments, dashboard, and support conversations.
-          </p>
+    <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
+        <h1 className="text-2xl font-bold">Continue with Google</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Sign in securely to access your products, payments, dashboard, and
+          support conversations.
+        </p>
 
-          <div className="mt-6">
-            <GoogleSignInButton onCredential={onCredential} />
-          </div>
-
-          {error ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+        <div className="mt-6">
+          <GoogleSignInButton onCredential={onCredential} />
         </div>
-      </main>
+
+        {error ? (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+      </div>
+    </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
+          <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-xl">
+            <h1 className="text-2xl font-bold">Continue with Google</h1>
+            <p className="mt-2 text-sm text-gray-600">Loading login page...</p>
+          </div>
+        </main>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }
