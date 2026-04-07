@@ -5,7 +5,6 @@ import { ReactNode, useEffect, useState } from "react";
 import { apiGetResult } from "@/lib/api";
 import { clearToken, getToken } from "@/lib/auth";
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
-import ToastViewport from "@/components/admin/ui/ToastViewport";
 
 const links = [
   ["Overview", "/admin/overview"],
@@ -52,9 +51,7 @@ export default function AdminShell({ title, children }: { title: string; childre
   }
 
   return (
-    <>
-      <ToastViewport />
-      <main className="min-h-screen bg-neutral-950 text-white flex">
+    <main className="min-h-screen bg-neutral-950 text-white flex">
         <aside className="hidden w-72 border-r border-neutral-800 bg-neutral-900 p-4 md:block">
           <h1 className="text-lg font-semibold">Admin Dashboard</h1>
           <nav className="mt-6 space-y-2 text-sm text-neutral-300">
@@ -85,6 +82,5 @@ export default function AdminShell({ title, children }: { title: string; childre
           {children ? <div className="mt-6">{children}</div> : null}
         </section>
       </main>
-    </>
   );
 }
