@@ -1,6 +1,8 @@
 // src/app/about/page.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
+import { apiGet } from "@/lib/api";
 import Link from "next/link";
 import Script from "next/script";
 
@@ -31,7 +33,16 @@ export const metadata = {
 
 const LAST_UPDATED = "September 12, 2025";
 
-export default function AboutPage() {
+type PublicSettings = {
+  contact?: {
+    whatsapp_number?: string;
+  };
+};
+
+export default async function AboutPage() {
+  const publicSettings = await apiGet<PublicSettings>("/settings/public/");
+  const whatsappNumber = (publicSettings?.contact?.whatsapp_number || "").trim();
+
   const webPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -71,7 +82,7 @@ export default function AboutPage() {
         "@type": "ContactPoint",
         contactType: "customer support",
         email: "support@saasglobalhub.com",
-        telephone: "+1-716-342-0826",
+        telephone: whatsappNumber,
         availableLanguage: ["English"],
       },
     ],
@@ -331,7 +342,7 @@ export default function AboutPage() {
               </div>
 
               <h2 id="contact" className="scroll-mt-24">Contact</h2>
-              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:support@saasglobalhub.com">support@saasglobalhub.com</a> · Phone: <a className="underline" href="tel:+17163420826">+1 716 342 0826</a></p>
+              <p><strong>SaaSGlobal Hub LLC</strong> · 828 Lane Allen Rd, Ste 219, Lexington, KY 40504, USA · Email: <a className="underline" href="mailto:support@saasglobalhub.com">support@saasglobalhub.com</a> · Phone: <SupportPhoneLink className="underline" /></p>
 
               <div className="mt-6 p-4 sm:p-5 rounded-xl border bg-white shadow-xl">
                 <p className="m-0 text-[13px] sm:text-sm text-gray-700">Enterprise partnership or co-build request? Email <a className="underline" href="mailto:partnerships@saasglobalhub.com">partnerships@saasglobalhub.com</a>.</p>

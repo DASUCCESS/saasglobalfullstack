@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, MapPin, Phone } from "lucide-react";
+import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 
 export default function Footer() {
   return (
@@ -87,7 +88,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-brand-yellow shrink-0" />
-              +1 716 342 0826
+              <SupportPhoneLink />
             </li>
           </ul>
         </div>
