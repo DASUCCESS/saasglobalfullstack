@@ -5,6 +5,7 @@ import SupportPhoneLink from "@/components/site/SupportPhoneLink";
 import SupportWhatsAppLink from "@/components/site/SupportWhatsAppLink";
 import Script from "next/script";
 import Link from "next/link";
+import { apiGet } from "@/lib/api";
 
 function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -52,7 +53,18 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function Page() {
+type PublicSettings = {
+  contact?: {
+    whatsapp_number?: string;
+  };
+};
+
+export default async function Page() {
+  const publicSettings = await apiGet<PublicSettings>("/settings/public/");
+  const whatsappNumber = (publicSettings?.contact?.whatsapp_number || "").trim();
+  const whatsappDigits = whatsappNumber.replace(/\D/g, "");
+  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "#";
+
   const contactPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
