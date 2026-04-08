@@ -6,10 +6,14 @@
 </p>
 
 <p class="text">
-  A customer has sent a new support message tied to an order and may be waiting for a response.
+  A customer has successfully completed payment for an order.
 </p>
 
 <div class="card">
+  <div class="row">
+    <span class="label">Customer</span>
+    <div class="value">{{ customer_name }} ({{ customer_email }})</div>
+  </div>
   <div class="row">
     <span class="label">Product</span>
     <div class="value">{{ product_name }}</div>
@@ -19,17 +23,17 @@
     <div class="value">{{ order_reference }}</div>
   </div>
   <div class="row">
-    <span class="label">Sender</span>
-    <div class="value">{{ sender_name }}</div>
+    <span class="label">Amount Paid</span>
+    <div class="value">{{ amount_paid }}</div>
   </div>
   <div class="row">
-    <span class="label">Message</span>
-    <div class="value">{{ message_content }}</div>
+    <span class="label">Payment Provider</span>
+    <div class="value">{{ payment_provider }}</div>
   </div>
 </div>
 
 <p class="text">
-  Open the order conversation to review the message and respond from the admin dashboard.
+  Open the order to review fulfillment, payment events, and customer activity.
 </p>
 
 <div class="button-wrap">
