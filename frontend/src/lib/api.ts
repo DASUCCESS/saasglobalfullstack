@@ -7,6 +7,7 @@ type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type ApiError = {
   status: number;
   detail: string;
+  raw?: unknown;
 };
 
 export type ApiResult<T> = {
@@ -21,6 +22,33 @@ export type PaginatedResponse<T> = {
   previous: string | null;
   results: T[];
 };
+
+
+function firstErrorMessage(value: unknown): string | null {
+  if (typeof value === "string") return value;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const nested = firstErrorMessage(item);
+      if (nested) return nested;
+    }
+    return null;
+  }
+
+  if (value && typeof value === "object") {
+    for (const nestedValue of Object.values(value as Record<string, unknown>)) {
+      const nested = firstErrorMessage(nestedValue);
+      if (nested) return nested;
+    }
+  }
+
+  return null;
+}
+
+function extractErrorDetail(body: unknown, fallback: string): string {
+  const detail = firstErrorMessage(body);
+  return detail || fallback;
+}
 
 function defaultCacheForPath(path: string, hasToken: boolean): RequestCache {
   if (hasToken) return "no-store";
@@ -59,7 +87,8 @@ async function apiRequestDetailed<T>(
         data: null,
         error: {
           status: response.status,
-          detail: body?.detail || "Request failed",
+          detail: extractErrorDetail(body, "Request failed"),
+          raw: body,
         },
       };
     }
@@ -118,7 +147,8 @@ export async function apiUploadResult<T>(path: string, formData: FormData, token
         data: null,
         error: {
           status: response.status,
-          detail: body?.detail || "Upload failed",
+          detail: extractErrorDetail(body, "Upload failed"),
+          raw: body,
         },
       };
     }

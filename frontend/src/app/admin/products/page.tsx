@@ -14,7 +14,7 @@ import ProductSeoEditor, {
 } from "@/components/admin/ProductSeoEditor";
 import SubscriptionPlansEditor, { SubscriptionPlanForm } from "@/components/admin/SubscriptionPlansEditor";
 import { AdminEmpty, AdminPanel } from "@/components/admin/ui/AdminUI";
-import { apiDelete, apiGet, apiPatch, apiPost, apiUploadResult } from "@/lib/api";
+import { apiDelete, apiGet, apiPatchResult, apiPostResult, apiUploadResult } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { usePaginatedResource } from "@/hooks/usePaginatedResource";
 import { toast } from "@/lib/toast";
@@ -256,17 +256,17 @@ export default function Page() {
     }
 
     setSaving(true);
-    const res = await apiPost<Product>("/products/", buildPayload(), token);
+    const res = await apiPostResult<Product>("/products/", buildPayload(), token);
     setSaving(false);
 
-    if (!res) {
-      toast.error("Product creation failed.");
+    if (!res.ok || !res.data) {
+      toast.error(res.error?.detail || "Product creation failed.");
       return;
     }
 
     toast.success("Product created successfully.");
     reload();
-    await loadProductForEdit(res.slug);
+    await loadProductForEdit(res.data.slug);
   };
 
   const handleUpdate = async () => {
@@ -276,17 +276,17 @@ export default function Page() {
     }
 
     setSaving(true);
-    const res = await apiPatch<Product>(`/products/${selectedSlug || selected.slug}/`, buildPayload(), token);
+    const res = await apiPatchResult<Product>(`/products/${selectedSlug || selected.slug}/`, buildPayload(), token);
     setSaving(false);
 
-    if (!res) {
-      toast.error("Product update failed.");
+    if (!res.ok || !res.data) {
+      toast.error(res.error?.detail || "Product update failed.");
       return;
     }
 
     toast.success("Product updated successfully.");
     reload();
-    await loadProductForEdit(res.slug);
+    await loadProductForEdit(res.data.slug);
   };
 
   return (
@@ -342,6 +342,11 @@ export default function Page() {
                       <span className="rounded-full border border-neutral-700 px-2 py-1">
                         {product.is_visible ? "Visible" : "Hidden"}
                       </span>
+                      {!!product.subscription_enabled && (product.subscription_plans || []).length ? (
+                        <span className="rounded-full border border-[#a66b00] bg-[#a66b00]/20 px-2 py-1 font-semibold text-[#ffcc4d]">
+                          One-time + Subscription
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 

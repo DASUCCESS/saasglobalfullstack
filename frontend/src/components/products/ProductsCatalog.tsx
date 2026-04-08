@@ -99,7 +99,7 @@ function ProductCard({ product }: { product: Product }) {
         {!!product.subscription_enabled &&
         normalizedSubscriptionPlans.length > 0 ? (
           <>
-            <p className="mt-2 text-xs font-bold text-brand-yellow">
+            <p className="mt-2 text-xs font-bold text-[#a66b00]">
               This product supports both one-time purchase and subscription.
             </p>
             <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
