@@ -1,6 +1,14 @@
 from rest_framework import serializers
+from django.utils import timezone
 from apps.catalog.models import Product, ProductBenefit, ProductFAQ, ProductFeature, ProductKPI, ProductStep
 from apps.core.models import PaymentSettings
+
+
+def _supports_subscription_billing_period(plan_id: str, billing_period: str) -> bool:
+    source = f"{plan_id} {billing_period}".lower()
+    return any(token in source for token in ["quarter", "quarterly", "3 month", "3-month"]) or any(
+        token in source for token in ["year", "yearly", "annual", "annually", "12 month"]
+    ) or any(token in source for token in ["month", "monthly"])
 
 
 class ProductFeatureSerializer(serializers.ModelSerializer):
@@ -38,6 +46,11 @@ class ProductKPISerializer(serializers.ModelSerializer):
 
 class ProductPublicSerializer(serializers.ModelSerializer):
     price_ngn = serializers.SerializerMethodField()
+    promotion_price_ngn = serializers.SerializerMethodField()
+    current_price_usd = serializers.SerializerMethodField()
+    current_price_ngn = serializers.SerializerMethodField()
+    promotion_is_active = serializers.SerializerMethodField()
+    subscription_plans = serializers.SerializerMethodField()
     features = ProductFeatureSerializer(many=True, read_only=True)
     steps = ProductStepSerializer(many=True, read_only=True)
     benefits = ProductBenefitSerializer(many=True, read_only=True)
@@ -60,6 +73,16 @@ class ProductPublicSerializer(serializers.ModelSerializer):
             "support_email",
             "price_usd",
             "price_ngn",
+            "promotion_enabled",
+            "promotion_price_usd",
+            "promotion_price_ngn",
+            "promotion_start_at",
+            "promotion_end_at",
+            "promotion_is_active",
+            "current_price_usd",
+            "current_price_ngn",
+            "subscription_enabled",
+            "subscription_plans",
             "status",
             "is_visible",
             "delivery_type",
@@ -77,6 +100,35 @@ class ProductPublicSerializer(serializers.ModelSerializer):
     def get_price_ngn(self, obj):
         settings = PaymentSettings.load()
         return round(float(obj.price_usd) * float(settings.usd_ngn_rate), 2)
+
+    def get_promotion_price_ngn(self, obj):
+        if obj.promotion_price_usd is None:
+            return None
+        settings = PaymentSettings.load()
+        return round(float(obj.promotion_price_usd) * float(settings.usd_ngn_rate), 2)
+
+    def get_current_price_usd(self, obj):
+        return obj.current_price_usd(now=timezone.now())
+
+    def get_current_price_ngn(self, obj):
+        settings = PaymentSettings.load()
+        return round(float(obj.current_price_usd(now=timezone.now())) * float(settings.usd_ngn_rate), 2)
+
+    def get_promotion_is_active(self, obj):
+        return obj.has_active_promotion(now=timezone.now())
+
+    def get_subscription_plans(self, obj):
+        settings = PaymentSettings.load()
+        rate = float(settings.usd_ngn_rate)
+        plans = []
+        for plan in obj.normalized_subscription_plans():
+            plans.append(
+                {
+                    **plan,
+                    "price_ngn": round(float(plan["price_usd"]) * rate, 2),
+                }
+            )
+        return plans
 
     def get_seo(self, obj):
         seo = obj.seo or {}
@@ -106,3 +158,57 @@ class ProductAdminSerializer(serializers.ModelSerializer):
     def get_price_ngn(self, obj):
         settings = PaymentSettings.load()
         return round(float(obj.price_usd) * float(settings.usd_ngn_rate), 2)
+
+    def validate(self, attrs):
+        promotion_enabled = attrs.get("promotion_enabled", getattr(self.instance, "promotion_enabled", False))
+        promotion_price = attrs.get("promotion_price_usd", getattr(self.instance, "promotion_price_usd", None))
+        promotion_start = attrs.get("promotion_start_at", getattr(self.instance, "promotion_start_at", None))
+        promotion_end = attrs.get("promotion_end_at", getattr(self.instance, "promotion_end_at", None))
+        price_usd = attrs.get("price_usd", getattr(self.instance, "price_usd", 0))
+
+        if promotion_enabled:
+            if promotion_price is None:
+                raise serializers.ValidationError({"promotion_price_usd": "Promotion price is required when promotion is enabled."})
+            if promotion_start is None or promotion_end is None:
+                raise serializers.ValidationError({"promotion_end_at": "Promotion start and end dates are required when promotion is enabled."})
+            if promotion_start >= promotion_end:
+                raise serializers.ValidationError({"promotion_end_at": "Promotion end must be after the promotion start time."})
+            if promotion_price >= price_usd:
+                raise serializers.ValidationError({"promotion_price_usd": "Promotion price must be lower than the original price."})
+
+        subscription_enabled = attrs.get("subscription_enabled", getattr(self.instance, "subscription_enabled", False))
+        subscription_plans = attrs.get("subscription_plans", getattr(self.instance, "subscription_plans", []))
+        if subscription_enabled:
+            if not isinstance(subscription_plans, list) or not subscription_plans:
+                raise serializers.ValidationError({"subscription_plans": "At least one subscription plan is required when subscription is enabled."})
+
+            seen_ids = set()
+            for idx, plan in enumerate(subscription_plans):
+                if not isinstance(plan, dict):
+                    raise serializers.ValidationError({"subscription_plans": f"Plan at index {idx} must be an object."})
+                plan_id = str(plan.get("id", "")).strip()
+                name = str(plan.get("name", "")).strip()
+                billing_period = str(plan.get("billing_period", "")).strip()
+                price_usd = plan.get("price_usd")
+
+                if not (plan_id and name and billing_period):
+                    raise serializers.ValidationError({"subscription_plans": f"Plan at index {idx} must include id, name, and billing_period."})
+                if plan_id in seen_ids:
+                    raise serializers.ValidationError({"subscription_plans": f"Duplicate plan id '{plan_id}' is not allowed."})
+                if not _supports_subscription_billing_period(plan_id, billing_period):
+                    raise serializers.ValidationError(
+                        {
+                            "subscription_plans": (
+                                f"Plan '{plan_id}' billing_period '{billing_period}' is unsupported. "
+                                "Use monthly, quarterly (every 3 months), or yearly wording."
+                            )
+                        }
+                    )
+                seen_ids.add(plan_id)
+                try:
+                    if float(price_usd) <= 0:
+                        raise serializers.ValidationError({"subscription_plans": f"Plan '{plan_id}' price must be greater than zero."})
+                except (TypeError, ValueError):
+                    raise serializers.ValidationError({"subscription_plans": f"Plan '{plan_id}' must include a valid numeric price_usd."})
+
+        return attrs
