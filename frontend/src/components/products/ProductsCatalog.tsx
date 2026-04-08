@@ -58,7 +58,7 @@ function ProductCard({ product }: { product: Product }) {
         <div className="h-40 w-full bg-gradient-to-br from-black via-zinc-900 to-yellow-400" />
       )}
 
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex min-h-[360px] flex-1 flex-col p-6">
         <h2 className="break-words text-xl font-semibold">{product.name}</h2>
         <p className="mt-1 break-words text-sm text-gray-700">{product.tagline}</p>
         {hasValidBasePrice ? (
@@ -71,7 +71,12 @@ function ProductCard({ product }: { product: Product }) {
           />
         ) : null}
         {!!product.subscription_enabled && normalizedSubscriptionPlans.length > 0 ? (
-          <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
+          <>
+            <p className="mt-2 text-xs font-bold text-indigo-700">
+              This product supports both one-time purchase and subscription.
+            </p>
+            <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
+          </>
         ) : null}
 
         <ul className="mt-4 space-y-2 text-sm">
@@ -114,8 +119,8 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
     });
   }, [products, search, statusFilter]);
 
-  const availableProducts = filteredProducts.filter((product) => product.status !== "upcoming");
-  const upcomingProducts = filteredProducts.filter((product) => product.status === "upcoming");
+  const availableProducts = filteredProducts.filter((product) => product.status !== "upcoming" && !product.promotion_is_active);
+  const upcomingProducts = filteredProducts.filter((product) => product.status === "upcoming" && !product.promotion_is_active);
   const promotionProducts = products.filter((product) => product.promotion_is_active);
 
   return (

@@ -47,7 +47,7 @@ export default function ProductPriceDisplay({
       {promotionIsActive ? (
         <PromotionCountdown
           endAt={promotionEndAt}
-          className="mt-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700"
+          className="mt-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700"
         />
       ) : null}
     </div>

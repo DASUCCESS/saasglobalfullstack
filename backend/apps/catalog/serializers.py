@@ -95,28 +95,33 @@ class ProductPublicSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    def _payment_settings(self):
+        if not hasattr(self, "_cached_payment_settings"):
+            self._cached_payment_settings = PaymentSettings.load()
+        return self._cached_payment_settings
+
     def get_price_ngn(self, obj):
-        settings = PaymentSettings.load()
+        settings = self._payment_settings()
         return round(float(obj.price_usd) * float(settings.usd_ngn_rate), 2)
 
     def get_promotion_price_ngn(self, obj):
         if obj.promotion_price_usd is None:
             return None
-        settings = PaymentSettings.load()
+        settings = self._payment_settings()
         return round(float(obj.promotion_price_usd) * float(settings.usd_ngn_rate), 2)
 
     def get_current_price_usd(self, obj):
         return obj.current_price_usd(now=timezone.now())
 
     def get_current_price_ngn(self, obj):
-        settings = PaymentSettings.load()
+        settings = self._payment_settings()
         return round(float(obj.current_price_usd(now=timezone.now())) * float(settings.usd_ngn_rate), 2)
 
     def get_promotion_is_active(self, obj):
         return obj.has_active_promotion(now=timezone.now())
 
     def get_subscription_plans(self, obj):
-        settings = PaymentSettings.load()
+        settings = self._payment_settings()
         rate = float(settings.usd_ngn_rate)
         plans = []
         for plan in obj.normalized_subscription_plans():
@@ -191,9 +196,10 @@ class ProductAdminSerializer(serializers.ModelSerializer):
 
                 if not (plan_id and name and billing_period):
                     raise serializers.ValidationError({"subscription_plans": f"Plan at index {idx} must include id, name, and billing_period."})
-                if plan_id in seen_ids:
-                    raise serializers.ValidationError({"subscription_plans": f"Duplicate plan id '{plan_id}' is not allowed."})
-                if plan_id.lower() not in SUPPORTED_SUBSCRIPTION_PLAN_IDS:
+                normalized_plan_id = plan_id.lower()
+                if normalized_plan_id in seen_ids:
+                    raise serializers.ValidationError({"subscription_plans": f"Duplicate plan id '{plan_id}' is not allowed (case-insensitive)."})
+                if normalized_plan_id not in SUPPORTED_SUBSCRIPTION_PLAN_IDS:
                     raise serializers.ValidationError(
                         {
                             "subscription_plans": (
@@ -211,11 +217,18 @@ class ProductAdminSerializer(serializers.ModelSerializer):
                             )
                         }
                     )
-                seen_ids.add(plan_id)
+                seen_ids.add(normalized_plan_id)
                 try:
                     if float(price_usd) <= 0:
                         raise serializers.ValidationError({"subscription_plans": f"Plan '{plan_id}' price must be greater than zero."})
                 except (TypeError, ValueError):
                     raise serializers.ValidationError({"subscription_plans": f"Plan '{plan_id}' must include a valid numeric price_usd."})
+
+            delivery_type = attrs.get("delivery_type", getattr(self.instance, "delivery_type", "none"))
+            access_url = attrs.get("access_url", getattr(self.instance, "access_url", ""))
+            if delivery_type == "download":
+                raise serializers.ValidationError({"delivery_type": "Subscription products cannot use download-only fulfillment."})
+            if delivery_type in {"access", "both"} and not (access_url or "").strip():
+                raise serializers.ValidationError({"access_url": "Access URL is required when subscription is enabled for access/both fulfillment."})
 
         return attrs

@@ -4,7 +4,6 @@ import { Bot, Truck, Store } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { apiGet } from "@/lib/api";
-import PromotionCountdown from "@/components/products/PromotionCountdown";
 import ProductPriceDisplay from "@/components/products/ProductPriceDisplay";
 import SubscriptionPlansPreview from "@/components/products/SubscriptionPlansPreview";
 
@@ -122,7 +121,9 @@ export default function Products() {
   useEffect(() => {
     apiGet<{ products: ApiProduct[] }>("/products-page/").then((payload) => {
       const allVisible = (payload?.products || []).filter((p) => p.is_visible);
-      const cards = allVisible
+      const promotionRows = allVisible.filter((item) => item.promotion_is_active);
+      const nonPromotionRows = allVisible.filter((item) => !item.promotion_is_active);
+      const cards = nonPromotionRows
         .slice(0, 6)
         .map((p, index) => ({
           title: p.name,
@@ -141,8 +142,7 @@ export default function Products() {
         }));
       setProducts(cards.slice(0, 3));
       setPromotions(
-        allVisible
-          .filter((item) => item.promotion_is_active)
+        promotionRows
           .slice(0, 3)
           .map((p, index) => ({
             title: p.name,
@@ -185,7 +185,7 @@ export default function Products() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
               viewport={{ once: true }}
-              className="relative group bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-xl hover:shadow-[0_18px_60px_rgba(0,0,0,0.15)] hover:scale-105 transition-all duration-500 border border-gray-100 hover:border-brand-yellow flex flex-col items-start gap-5 cursor-pointer min-h-[260px]"
+              className="relative group bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-xl hover:shadow-[0_18px_60px_rgba(0,0,0,0.15)] hover:scale-105 transition-all duration-500 border border-gray-100 hover:border-brand-yellow flex flex-col items-start gap-5 cursor-pointer min-h-[360px]"
             >
               <div className={`p-4 rounded-xl bg-gradient-to-r ${product.gradient} shadow-md inline-flex`}>{product.icon}</div>
               <h3 className="text-xl font-semibold group-hover:text-brand-yellow transition">{product.title}</h3>
@@ -198,14 +198,13 @@ export default function Products() {
                   promotionEndAt={product.promotionEndAt}
                 />
               ) : null}
-              {product.promotionIsActive ? (
-                <PromotionCountdown
-                  endAt={product.promotionEndAt}
-                  className="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700"
-                />
-              ) : null}
               {product.subscriptionEnabled && (product.subscriptionPlans || []).length ? (
-                <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
+                <>
+                  <span className="text-xs font-bold text-indigo-700">
+                    One-time purchase + subscription available
+                  </span>
+                  <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
+                </>
               ) : null}
               <span className="mt-auto font-semibold text-brand-yellow group-hover:underline transition">Learn More →</span>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-yellow/0 via-brand-yellow/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none" />
@@ -223,17 +222,25 @@ export default function Products() {
             </div>
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
               {promotions.map((item) => (
-                <a key={`${item.link}-promo`} href={item.link} className="rounded-xl border border-red-100 bg-white p-5 shadow-lg">
+                <a key={`${item.link}-promo`} href={item.link} className="flex min-h-[360px] flex-col rounded-xl border border-red-100 bg-white p-5 shadow-lg">
                   <p className="font-semibold text-gray-900">{item.title}</p>
                   <p className="mt-2 text-sm text-gray-600">{item.description}</p>
-                  <p className="mt-3 text-lg font-bold text-red-700">
-                    ${((item.currentPriceUsd || item.priceUsd) ?? 0).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 line-through">${(item.priceUsd || 0).toLocaleString()}</p>
-                  <PromotionCountdown endAt={item.promotionEndAt} className="mt-3 inline-block text-xs font-semibold text-red-700" />
+                  <ProductPriceDisplay
+                    className="mt-2"
+                    priceUsd={item.priceUsd || 0}
+                    currentPriceUsd={item.currentPriceUsd}
+                    promotionIsActive={item.promotionIsActive}
+                    promotionEndAt={item.promotionEndAt}
+                  />
                   {item.subscriptionEnabled && (item.subscriptionPlans || []).length ? (
-                    <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
+                    <>
+                      <span className="mt-2 text-xs font-bold text-indigo-700">
+                        One-time purchase + subscription available
+                      </span>
+                      <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
+                    </>
                   ) : null}
+                  <span className="mt-auto pt-4 font-semibold text-brand-yellow">Learn More →</span>
                 </a>
               ))}
             </div>
