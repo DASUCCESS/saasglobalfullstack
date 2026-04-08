@@ -16,12 +16,12 @@ type Product = {
   seo?: { og_image?: string };
   features?: { title: string }[];
   content?: { features?: { title: string }[] };
-  price_usd?: number;
-  current_price_usd?: number;
+  price_usd?: number | string;
+  current_price_usd?: number | string;
   promotion_is_active?: boolean;
   promotion_end_at?: string | null;
   subscription_enabled?: boolean;
-  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number }>;
+  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number | string }>;
 };
 
 type StatusFilter = "all" | "available" | "upcoming" | "promotion" | "subscription";
@@ -30,6 +30,15 @@ function ProductCard({ product }: { product: Product }) {
   const disabled = product.status === "upcoming";
   const featureList = (product.features?.length ? product.features : product.content?.features || []).slice(0, 3);
   const productImage = product.image_url || product.seo?.og_image || "";
+  const basePriceUsd = Number(product.price_usd);
+  const currentPriceUsd = Number(product.current_price_usd);
+  const hasValidBasePrice = Number.isFinite(basePriceUsd);
+  const normalizedSubscriptionPlans = (product.subscription_plans || [])
+    .map((plan) => ({
+      ...plan,
+      price_usd: Number(plan.price_usd),
+    }))
+    .filter((plan) => Number.isFinite(plan.price_usd));
 
   return (
     <Link
@@ -52,17 +61,17 @@ function ProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col p-6">
         <h2 className="break-words text-xl font-semibold">{product.name}</h2>
         <p className="mt-1 break-words text-sm text-gray-700">{product.tagline}</p>
-        {typeof product.price_usd === "number" ? (
+        {hasValidBasePrice ? (
           <ProductPriceDisplay
             className="mt-3"
-            priceUsd={product.price_usd}
-            currentPriceUsd={product.current_price_usd}
+            priceUsd={basePriceUsd}
+            currentPriceUsd={Number.isFinite(currentPriceUsd) ? currentPriceUsd : undefined}
             promotionIsActive={product.promotion_is_active}
             promotionEndAt={product.promotion_end_at || undefined}
           />
         ) : null}
-        {!!product.subscription_enabled && (product.subscription_plans || []).length > 0 ? (
-          <SubscriptionPlansPreview plans={product.subscription_plans || []} />
+        {!!product.subscription_enabled && normalizedSubscriptionPlans.length > 0 ? (
+          <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
         ) : null}
 
         <ul className="mt-4 space-y-2 text-sm">

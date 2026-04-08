@@ -4,6 +4,13 @@ from apps.catalog.models import Product, ProductBenefit, ProductFAQ, ProductFeat
 from apps.core.models import PaymentSettings
 
 
+def _supports_subscription_billing_period(plan_id: str, billing_period: str) -> bool:
+    source = f"{plan_id} {billing_period}".lower()
+    return any(token in source for token in ["quarter", "quarterly", "3 month", "3-month"]) or any(
+        token in source for token in ["year", "yearly", "annual", "annually", "12 month"]
+    ) or any(token in source for token in ["month", "monthly"])
+
+
 class ProductFeatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductFeature
@@ -188,6 +195,15 @@ class ProductAdminSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({"subscription_plans": f"Plan at index {idx} must include id, name, and billing_period."})
                 if plan_id in seen_ids:
                     raise serializers.ValidationError({"subscription_plans": f"Duplicate plan id '{plan_id}' is not allowed."})
+                if not _supports_subscription_billing_period(plan_id, billing_period):
+                    raise serializers.ValidationError(
+                        {
+                            "subscription_plans": (
+                                f"Plan '{plan_id}' billing_period '{billing_period}' is unsupported. "
+                                "Use monthly, quarterly (every 3 months), or yearly wording."
+                            )
+                        }
+                    )
                 seen_ids.add(plan_id)
                 try:
                     if float(price_usd) <= 0:

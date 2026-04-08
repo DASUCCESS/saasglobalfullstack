@@ -14,12 +14,12 @@ type ApiProduct = {
   short_description?: string;
   tagline?: string;
   is_visible?: boolean;
-  price_usd?: number;
-  current_price_usd?: number;
+  price_usd?: number | string;
+  current_price_usd?: number | string;
   promotion_is_active?: boolean;
   promotion_end_at?: string;
   subscription_enabled?: boolean;
-  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number }>;
+  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number | string }>;
 };
 
 type ProductCard = {
@@ -130,12 +130,14 @@ export default function Products() {
           link: `/products/${p.slug}`,
           icon: cardStyles[index % cardStyles.length].icon,
           gradient: cardStyles[index % cardStyles.length].gradient,
-          priceUsd: p.price_usd,
-          currentPriceUsd: p.current_price_usd,
+          priceUsd: Number(p.price_usd),
+          currentPriceUsd: Number(p.current_price_usd),
           promotionIsActive: p.promotion_is_active,
           promotionEndAt: p.promotion_end_at,
           subscriptionEnabled: p.subscription_enabled,
-          subscriptionPlans: p.subscription_plans,
+          subscriptionPlans: (p.subscription_plans || [])
+            .map((plan) => ({ ...plan, price_usd: Number(plan.price_usd) }))
+            .filter((plan) => Number.isFinite(plan.price_usd)),
         }));
       setProducts(cards.slice(0, 3));
       setPromotions(
@@ -148,12 +150,14 @@ export default function Products() {
             link: `/products/${p.slug}`,
             icon: cardStyles[index % cardStyles.length].icon,
             gradient: cardStyles[index % cardStyles.length].gradient,
-            priceUsd: p.price_usd,
-            currentPriceUsd: p.current_price_usd,
+            priceUsd: Number(p.price_usd),
+            currentPriceUsd: Number(p.current_price_usd),
             promotionIsActive: p.promotion_is_active,
             promotionEndAt: p.promotion_end_at,
             subscriptionEnabled: p.subscription_enabled,
-            subscriptionPlans: p.subscription_plans,
+            subscriptionPlans: (p.subscription_plans || [])
+              .map((plan) => ({ ...plan, price_usd: Number(plan.price_usd) }))
+              .filter((plan) => Number.isFinite(plan.price_usd)),
           }))
       );
     });
@@ -186,10 +190,10 @@ export default function Products() {
               <div className={`p-4 rounded-xl bg-gradient-to-r ${product.gradient} shadow-md inline-flex`}>{product.icon}</div>
               <h3 className="text-xl font-semibold group-hover:text-brand-yellow transition">{product.title}</h3>
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
-              {typeof product.priceUsd === "number" ? (
+              {Number.isFinite(product.priceUsd) ? (
                 <ProductPriceDisplay
-                  priceUsd={product.priceUsd}
-                  currentPriceUsd={product.currentPriceUsd}
+                  priceUsd={product.priceUsd as number}
+                  currentPriceUsd={Number.isFinite(product.currentPriceUsd) ? product.currentPriceUsd : undefined}
                   promotionIsActive={product.promotionIsActive}
                   promotionEndAt={product.promotionEndAt}
                 />
