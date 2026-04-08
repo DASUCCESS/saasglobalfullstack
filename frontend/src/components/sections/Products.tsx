@@ -13,6 +13,7 @@ type ApiProduct = {
   short_description?: string;
   tagline?: string;
   is_visible?: boolean;
+  image_url?: string;
   price_usd?: number | string;
   current_price_usd?: number | string;
   promotion_is_active?: boolean;
@@ -27,6 +28,7 @@ type ProductCard = {
   icon: ReactNode;
   link: string;
   gradient: string;
+  imageUrl?: string;
   priceUsd?: number;
   currentPriceUsd?: number;
   promotionIsActive?: boolean;
@@ -129,6 +131,7 @@ export default function Products() {
           title: p.name,
           description: p.short_description || p.tagline || "Explore our product offering.",
           link: `/products/${p.slug}`,
+          imageUrl: p.image_url,
           icon: cardStyles[index % cardStyles.length].icon,
           gradient: cardStyles[index % cardStyles.length].gradient,
           priceUsd: Number(p.price_usd),
@@ -148,6 +151,7 @@ export default function Products() {
             title: p.name,
             description: p.short_description || p.tagline || "Explore our product offering.",
             link: `/products/${p.slug}`,
+            imageUrl: p.image_url,
             icon: cardStyles[index % cardStyles.length].icon,
             gradient: cardStyles[index % cardStyles.length].gradient,
             priceUsd: Number(p.price_usd),
@@ -187,7 +191,16 @@ export default function Products() {
               viewport={{ once: true }}
               className="relative group bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-xl hover:shadow-[0_18px_60px_rgba(0,0,0,0.15)] hover:scale-105 transition-all duration-500 border border-gray-100 hover:border-brand-yellow flex flex-col items-start gap-5 cursor-pointer min-h-[360px]"
             >
-              <div className={`p-4 rounded-xl bg-gradient-to-r ${product.gradient} shadow-md inline-flex`}>{product.icon}</div>
+              <div className="relative w-full overflow-hidden rounded-xl border border-gray-100">
+                {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.title} className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="h-40 w-full bg-gradient-to-br from-black via-zinc-900 to-yellow-400" />
+                )}
+                <div className="absolute left-3 top-3 rounded-xl bg-white/90 p-2 shadow">
+                  <div className={`rounded-lg bg-gradient-to-r p-2 ${product.gradient}`}>{product.icon}</div>
+                </div>
+              </div>
               <h3 className="text-xl font-semibold group-hover:text-brand-yellow transition">{product.title}</h3>
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
               {Number.isFinite(product.priceUsd) ? (
@@ -223,6 +236,13 @@ export default function Products() {
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
               {promotions.map((item) => (
                 <a key={`${item.link}-promo`} href={item.link} className="flex min-h-[360px] flex-col rounded-xl border border-red-100 bg-white p-5 shadow-lg">
+                  <div className="relative mb-3 w-full overflow-hidden rounded-xl border border-red-100">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.title} className="h-36 w-full object-cover" />
+                    ) : (
+                      <div className="h-36 w-full bg-gradient-to-br from-black via-zinc-900 to-yellow-400" />
+                    )}
+                  </div>
                   <p className="font-semibold text-gray-900">{item.title}</p>
                   <p className="mt-2 text-sm text-gray-600">{item.description}</p>
                   <ProductPriceDisplay
