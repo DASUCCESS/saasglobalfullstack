@@ -15,6 +15,12 @@ type Product = {
   seo?: { og_image?: string };
   features?: { title: string }[];
   content?: { features?: { title: string }[] };
+  price_usd?: number;
+  current_price_usd?: number;
+  promotion_is_active?: boolean;
+  promotion_end_at?: string | null;
+  subscription_enabled?: boolean;
+  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number }>;
 };
 
 type PublicSettings = {

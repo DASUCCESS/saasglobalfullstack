@@ -71,6 +71,8 @@ def get_or_create_pending_order(
     product: Product,
     provider: str,
     idempotency_key: str,
+    purchase_mode: str = "one_time",
+    subscription_plan_id: str = "",
 ) -> PurchaseOrder:
     pay_settings = PaymentSettings.load()
 
@@ -85,21 +87,54 @@ def get_or_create_pending_order(
 
     fulfillment_type, access_url, access_label, access_instructions = _resolve_fulfillment(product)
 
+    resolved_purchase_mode = "subscription" if purchase_mode == "subscription" else "one_time"
+    resolved_plan_id = ""
+    resolved_plan_name = ""
+    resolved_billing_period = ""
+
+    if resolved_purchase_mode == "subscription":
+        if not product.subscription_enabled:
+            raise PaymentError("Subscription mode is not enabled for this product.")
+        plans = product.normalized_subscription_plans()
+        selected_plan = next((plan for plan in plans if plan["id"] == (subscription_plan_id or "").strip()), None)
+        if not selected_plan:
+            raise PaymentError("Subscription plan not found for this product.")
+        effective_price_usd = Decimal(str(selected_plan["price_usd"]))
+        resolved_plan_id = selected_plan["id"]
+        resolved_plan_name = selected_plan["name"]
+        resolved_billing_period = selected_plan["billing_period"]
+    else:
+        effective_price_usd = product.current_price_usd(now=timezone.now())
+
     with transaction.atomic():
+        download_url = ""
+        resolved_fulfillment_type = fulfillment_type
+        if resolved_purchase_mode == "one_time":
+            download_url = product.downloadable_zip_url or ""
+        else:
+            if fulfillment_type == "both":
+                resolved_fulfillment_type = "access"
+            elif fulfillment_type == "download":
+                resolved_fulfillment_type = "none"
+
         order = PurchaseOrder.objects.create(
             user=user,
             product=product,
             provider=provider,
-            amount=product.price_usd,
-            amount_ngn=Decimal(product.price_usd) * Decimal(pay_settings.usd_ngn_rate),
+            amount=effective_price_usd,
+            amount_ngn=Decimal(effective_price_usd) * Decimal(pay_settings.usd_ngn_rate),
+            purchase_mode=resolved_purchase_mode,
+            subscription_plan_id=resolved_plan_id,
+            subscription_plan_name=resolved_plan_name,
+            subscription_billing_period=resolved_billing_period,
             payment_reference=_make_payment_reference(),
             idempotency_key=idempotency_key,
-            fulfillment_type=fulfillment_type,
+            fulfillment_type=resolved_fulfillment_type,
             access_url=access_url,
             access_label=access_label,
             access_instructions=access_instructions,
             delivery_payload={
-                "download_url": product.downloadable_zip_url or "",
+                "download_url": download_url,
             },
         )
     return order
@@ -147,7 +182,11 @@ def initialize_stripe_checkout(order: PurchaseOrder) -> Dict[str, Any]:
                     "unit_amount": unit_amount,
                     "product_data": {
                         "name": order.product.name,
-                        "description": order.product.tagline or order.product.short_description or "",
+                        "description": (
+                            f"{order.subscription_plan_name} ({order.subscription_billing_period}) subscription"
+                            if order.purchase_mode == "subscription"
+                            else (order.product.tagline or order.product.short_description or "")
+                        ),
                     },
                 },
             }
@@ -157,6 +196,8 @@ def initialize_stripe_checkout(order: PurchaseOrder) -> Dict[str, Any]:
             "payment_reference": order.payment_reference,
             "user_id": str(order.user_id),
             "product_slug": order.product.slug,
+            "purchase_mode": order.purchase_mode,
+            "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
 
@@ -229,6 +270,8 @@ def initialize_paystack_checkout(order: PurchaseOrder) -> Dict[str, Any]:
             "payment_reference": order.payment_reference,
             "product_slug": order.product.slug,
             "user_id": order.user_id,
+            "purchase_mode": order.purchase_mode,
+            "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
 

@@ -53,6 +53,10 @@ class PurchaseOrder(models.Model):
         ("access", "Access"),
         ("both", "Both"),
     ]
+    PURCHASE_MODE_CHOICES = [
+        ("one_time", "One Time"),
+        ("subscription", "Subscription"),
+    ]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -63,6 +67,10 @@ class PurchaseOrder(models.Model):
     provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     amount_ngn = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    purchase_mode = models.CharField(max_length=20, choices=PURCHASE_MODE_CHOICES, default="one_time")
+    subscription_plan_id = models.CharField(max_length=120, blank=True)
+    subscription_plan_name = models.CharField(max_length=255, blank=True)
+    subscription_billing_period = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     payment_reference = models.CharField(max_length=255, unique=True)
     idempotency_key = models.CharField(max_length=120, blank=True, null=True)
@@ -111,6 +119,8 @@ class PurchaseOrder(models.Model):
     @property
     def resolved_download_url(self) -> str:
         if self.status != "paid":
+            return ""
+        if self.purchase_mode == "subscription":
             return ""
         return self.delivery_payload.get("download_url") or self.product.downloadable_zip_url or ""
 
