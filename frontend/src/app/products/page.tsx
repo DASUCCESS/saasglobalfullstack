@@ -20,7 +20,12 @@ type Product = {
   promotion_is_active?: boolean;
   promotion_end_at?: string | null;
   subscription_enabled?: boolean;
-  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number }>;
+  subscription_plans?: Array<{
+    id: string;
+    name: string;
+    billing_period: string;
+    price_usd: number;
+  }>;
 };
 
 type PublicSettings = {
@@ -44,10 +49,16 @@ export async function generateMetadata() {
   const visibleProducts = (payload?.products || []).filter((p) => p.is_visible);
   const visibleCount = visibleProducts.length;
   const siteName = settings?.site?.site_name || "SaaSGlobal Hub";
-  const firstProductWithImage = visibleProducts.find((p) => p.image_url || p.seo?.og_image);
-  const productsOgImage = resolveAbsoluteImageUrl(firstProductWithImage?.image_url || firstProductWithImage?.seo?.og_image);
+  const firstProductWithImage = visibleProducts.find(
+    (p) => p.image_url || p.seo?.og_image
+  );
+  const productsOgImage = resolveAbsoluteImageUrl(
+    firstProductWithImage?.image_url || firstProductWithImage?.seo?.og_image
+  );
+
   const seoTitle = `Best Digital Products, SaaS Templates, AI Tools & Ecommerce Solutions | ${siteName}`;
   const description = `Shop ${visibleCount} high-converting digital products including AI tools, SaaS templates, ecommerce solutions, automation systems, business growth resources, and ready-to-use online business assets.`;
+
   const keywords = [
     "best digital products",
     "buy digital products online",
@@ -92,12 +103,18 @@ export default async function ProductsIndexPage() {
   return (
     <>
       <Header />
-      <main className="relative overflow-x-clip bg-white text-black">
+      <main className="relative overflow-x-clip bg-brand-white text-brand-black">
         <section className="relative pb-10 pt-28">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <p className="text-xs uppercase tracking-wide text-gray-500">SaaSGlobal Hub</p>
-            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Products</h1>
-            <p className="mt-4 max-w-3xl text-lg md:text-xl">
+            <p className="text-xs uppercase tracking-wide text-brand-black/60">
+              SaaSGlobal Hub
+            </p>
+
+            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+              Products
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-lg text-brand-black/75 md:text-xl">
               Explore our digital products, access tools, and upcoming launches.
             </p>
           </div>
