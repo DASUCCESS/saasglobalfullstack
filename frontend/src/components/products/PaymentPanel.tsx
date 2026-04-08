@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import SubscriptionPlanSelector from "@/components/products/SubscriptionPlanSelector";
 import { apiGetResult, apiPostResult } from "@/lib/api";
 import { getToken, setToken } from "@/lib/auth";
 import { toast } from "@/lib/toast";
@@ -12,6 +13,14 @@ type Props = {
   priceNgn: number;
   showNaira?: boolean;
   isNigeria?: boolean;
+  subscriptionEnabled?: boolean;
+  subscriptionPlans?: Array<{
+    id: string;
+    name: string;
+    billing_period: string;
+    price_usd: number;
+    price_ngn?: number;
+  }>;
 };
 
 type MeResponse = {
@@ -72,6 +81,8 @@ export default function PaymentPanel({
   priceNgn,
   showNaira = false,
   isNigeria = false,
+  subscriptionEnabled = false,
+  subscriptionPlans = [],
 }: Props) {
   const [provider, setProvider] = useState<"stripe" | "paystack">(
     isNigeria ? "paystack" : "stripe"
@@ -82,6 +93,19 @@ export default function PaymentPanel({
   const [userEmail, setUserEmail] = useState("");
   const [error, setError] = useState("");
   const [autoCheckout, setAutoCheckout] = useState(false);
+  const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
+  const [selectedSubscriptionPlan, setSelectedSubscriptionPlan] = useState("");
+
+  const selectedPlan = useMemo(
+    () => subscriptionPlans.find((plan) => plan.id === selectedSubscriptionPlan),
+    [subscriptionPlans, selectedSubscriptionPlan]
+  );
+  const effectivePriceUsd =
+    purchaseMode === "subscription" && selectedPlan ? selectedPlan.price_usd : priceUsd;
+  const effectivePriceNgn =
+    purchaseMode === "subscription" && selectedPlan && typeof selectedPlan.price_ngn === "number"
+      ? selectedPlan.price_ngn
+      : priceNgn;
 
   const currentPath = useMemo(
     () =>
@@ -94,6 +118,15 @@ export default function PaymentPanel({
   useEffect(() => {
     setProvider(isNigeria ? "paystack" : "stripe");
   }, [isNigeria]);
+
+  useEffect(() => {
+    if (subscriptionEnabled && subscriptionPlans.length) {
+      setSelectedSubscriptionPlan(subscriptionPlans[0].id);
+    } else {
+      setPurchaseMode("one_time");
+      setSelectedSubscriptionPlan("");
+    }
+  }, [subscriptionEnabled, subscriptionPlans]);
 
   useEffect(() => {
     const token = getToken();
@@ -118,6 +151,12 @@ export default function PaymentPanel({
 
     const resolvedProvider: "stripe" | "paystack" =
       provider === "paystack" && !isNigeria ? "stripe" : provider;
+    const resolvedPurchaseMode: "one_time" | "subscription" =
+      purchaseMode === "subscription" && subscriptionEnabled ? "subscription" : "one_time";
+    if (resolvedPurchaseMode === "subscription" && !selectedSubscriptionPlan) {
+      toast.error("Select a subscription plan to continue.");
+      return;
+    }
 
     setError("");
     setLoading(true);
@@ -127,6 +166,8 @@ export default function PaymentPanel({
       {
         product_slug: slug,
         provider: resolvedProvider,
+        purchase_mode: resolvedPurchaseMode,
+        subscription_plan_id: resolvedPurchaseMode === "subscription" ? selectedSubscriptionPlan : "",
         idempotency_key: createIdempotencyKey(slug, resolvedProvider),
         return_path: currentPath,
       },
@@ -201,6 +242,39 @@ export default function PaymentPanel({
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
+          {subscriptionEnabled ? (
+            <div className="w-full rounded-xl border border-gray-200 bg-gray-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">Purchase Type</p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  className={`rounded-lg px-3 py-2 text-sm ${purchaseMode === "one_time" ? "bg-black text-white" : "border border-gray-300 bg-white text-black"}`}
+                  onClick={() => setPurchaseMode("one_time")}
+                >
+                  Full Purchase
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-lg px-3 py-2 text-sm ${purchaseMode === "subscription" ? "bg-black text-white" : "border border-gray-300 bg-white text-black"}`}
+                  onClick={() => setPurchaseMode("subscription")}
+                >
+                  Subscription
+                </button>
+              </div>
+
+              {purchaseMode === "subscription" ? (
+                <div className="mt-3">
+                  <SubscriptionPlanSelector
+                    plans={subscriptionPlans}
+                    value={selectedSubscriptionPlan}
+                    onChange={setSelectedSubscriptionPlan}
+                    showNaira={showNaira}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={() => setProvider("stripe")}
@@ -217,15 +291,15 @@ export default function PaymentPanel({
             />
             <span className="flex flex-col items-start text-left">
               <span className="text-sm font-semibold">Stripe</span>
-              <span
-                className={`text-xs ${
-                  provider === "stripe" ? "text-white/80" : "text-gray-500"
-                }`}
-              >
-                USD ${priceUsd.toLocaleString()}
+                <span
+                  className={`text-xs ${
+                    provider === "stripe" ? "text-white/80" : "text-gray-500"
+                  }`}
+                >
+                  USD ${effectivePriceUsd.toLocaleString()}
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
 
           {isNigeria ? (
             <button
@@ -249,7 +323,7 @@ export default function PaymentPanel({
                     provider === "paystack" ? "text-white/80" : "text-gray-500"
                   }`}
                 >
-                  ₦{priceNgn.toLocaleString()}
+                  ₦{effectivePriceNgn.toLocaleString()}
                 </span>
               </span>
             </button>
