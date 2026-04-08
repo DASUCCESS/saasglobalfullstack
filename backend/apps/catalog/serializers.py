@@ -1,14 +1,12 @@
 from rest_framework import serializers
 from django.utils import timezone
 from apps.catalog.models import Product, ProductBenefit, ProductFAQ, ProductFeature, ProductKPI, ProductStep
+from apps.catalog.subscription_periods import resolve_subscription_interval
 from apps.core.models import PaymentSettings
 
 
 def _supports_subscription_billing_period(plan_id: str, billing_period: str) -> bool:
-    source = f"{plan_id} {billing_period}".lower()
-    return any(token in source for token in ["quarter", "quarterly", "3 month", "3-month"]) or any(
-        token in source for token in ["year", "yearly", "annual", "annually", "12 month"]
-    ) or any(token in source for token in ["month", "monthly"])
+    return resolve_subscription_interval(plan_id, billing_period) is not None
 
 
 class ProductFeatureSerializer(serializers.ModelSerializer):

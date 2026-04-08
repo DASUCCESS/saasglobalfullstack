@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.accounts.models import PaymentEventLog, PurchaseOrder
 from apps.catalog.models import Product
+from apps.catalog.subscription_periods import resolve_subscription_interval
 from apps.core.models import PaymentSettings
 
 try:
@@ -54,19 +55,10 @@ def _make_payment_reference() -> str:
 
 
 def _resolve_subscription_recurring(order: PurchaseOrder) -> Tuple[str, int]:
-    source = f"{order.subscription_plan_id} {order.subscription_billing_period}".lower()
-    if any(token in source for token in ["quarter", "quarterly", "3 month", "3-month"]):
-        interval = "month"
-        count = 3
-    elif any(token in source for token in ["year", "yearly", "annual", "annually", "12 month"]):
-        interval = "year"
-        count = 1
-    elif any(token in source for token in ["month", "monthly"]):
-        interval = "month"
-        count = 1
-    else:
+    resolved = resolve_subscription_interval(order.subscription_plan_id or "", order.subscription_billing_period or "")
+    if not resolved:
         raise PaymentError("Unsupported subscription billing period for Stripe.")
-    return interval, count
+    return resolved
 
 
 def _resolve_fulfillment(product: Product) -> Tuple[str, str, str, str]:
@@ -315,6 +307,43 @@ def initialize_paystack_checkout(order: PurchaseOrder) -> Dict[str, Any]:
             "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
+
+    if order.purchase_mode == "subscription":
+        interval, interval_count = _resolve_subscription_recurring(order)
+        paystack_interval = ""
+        if interval == "year":
+            paystack_interval = "annually"
+        elif interval == "month" and interval_count == 1:
+            paystack_interval = "monthly"
+        elif interval == "month" and interval_count == 3:
+            paystack_interval = "quarterly"
+        elif interval == "month" and interval_count == 6:
+            paystack_interval = "biannually"
+        else:
+            raise PaymentError("Unsupported subscription cadence for Paystack.")
+
+        plan_response = requests.post(
+            "https://api.paystack.co/plan",
+            headers={
+                "Authorization": f"Bearer {settings.paystack_secret_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "name": f"{order.product.name} - {order.subscription_plan_name or order.subscription_plan_id}",
+                "interval": paystack_interval,
+                "amount": int(Decimal(order.amount_ngn) * 100),
+                "currency": "NGN",
+            },
+            timeout=20,
+        )
+        plan_response.raise_for_status()
+        plan_body = plan_response.json()
+        if not plan_body.get("status"):
+            raise PaymentError(plan_body.get("message") or "Paystack subscription plan creation failed.")
+        plan_code = ((plan_body.get("data") or {}).get("plan_code") or "").strip()
+        if not plan_code:
+            raise PaymentError("Paystack subscription plan code was not returned.")
+        payload["plan"] = plan_code
 
     response = requests.post(
         "https://api.paystack.co/transaction/initialize",
