@@ -6,6 +6,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { apiGet } from "@/lib/api";
 import PromotionCountdown from "@/components/products/PromotionCountdown";
 import ProductPriceDisplay from "@/components/products/ProductPriceDisplay";
+import SubscriptionPlansPreview from "@/components/products/SubscriptionPlansPreview";
 
 type ApiProduct = {
   slug: string;
@@ -120,8 +121,8 @@ export default function Products() {
 
   useEffect(() => {
     apiGet<{ products: ApiProduct[] }>("/products-page/").then((payload) => {
-      const cards = (payload?.products || [])
-        .filter((p) => p.is_visible)
+      const allVisible = (payload?.products || []).filter((p) => p.is_visible);
+      const cards = allVisible
         .slice(0, 6)
         .map((p, index) => ({
           title: p.name,
@@ -137,7 +138,24 @@ export default function Products() {
           subscriptionPlans: p.subscription_plans,
         }));
       setProducts(cards.slice(0, 3));
-      setPromotions(cards.filter((item) => item.promotionIsActive).slice(0, 3));
+      setPromotions(
+        allVisible
+          .filter((item) => item.promotion_is_active)
+          .slice(0, 3)
+          .map((p, index) => ({
+            title: p.name,
+            description: p.short_description || p.tagline || "Explore our product offering.",
+            link: `/products/${p.slug}`,
+            icon: cardStyles[index % cardStyles.length].icon,
+            gradient: cardStyles[index % cardStyles.length].gradient,
+            priceUsd: p.price_usd,
+            currentPriceUsd: p.current_price_usd,
+            promotionIsActive: p.promotion_is_active,
+            promotionEndAt: p.promotion_end_at,
+            subscriptionEnabled: p.subscription_enabled,
+            subscriptionPlans: p.subscription_plans,
+          }))
+      );
     });
   }, []);
 
@@ -183,9 +201,7 @@ export default function Products() {
                 />
               ) : null}
               {product.subscriptionEnabled && (product.subscriptionPlans || []).length ? (
-                <span className="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700">
-                  Subscription available
-                </span>
+                <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
               ) : null}
               <span className="mt-auto font-semibold text-brand-yellow group-hover:underline transition">Learn More →</span>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-yellow/0 via-brand-yellow/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none" />
@@ -211,6 +227,9 @@ export default function Products() {
                   </p>
                   <p className="text-xs text-gray-500 line-through">${(item.priceUsd || 0).toLocaleString()}</p>
                   <PromotionCountdown endAt={item.promotionEndAt} className="mt-3 inline-block text-xs font-semibold text-red-700" />
+                  {item.subscriptionEnabled && (item.subscriptionPlans || []).length ? (
+                    <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
+                  ) : null}
                 </a>
               ))}
             </div>

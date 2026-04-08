@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ProductPriceDisplay from "@/components/products/ProductPriceDisplay";
+import SubscriptionPlansPreview from "@/components/products/SubscriptionPlansPreview";
 
 type Product = {
   slug: string;
@@ -61,9 +62,7 @@ function ProductCard({ product }: { product: Product }) {
           />
         ) : null}
         {!!product.subscription_enabled && (product.subscription_plans || []).length > 0 ? (
-          <p className="mt-2 text-xs font-semibold text-indigo-700">
-            Subscription available from ${Math.min(...(product.subscription_plans || []).map((plan) => plan.price_usd)).toLocaleString()}
-          </p>
+          <SubscriptionPlansPreview plans={product.subscription_plans || []} />
         ) : null}
 
         <ul className="mt-4 space-y-2 text-sm">
@@ -108,6 +107,7 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
 
   const availableProducts = filteredProducts.filter((product) => product.status !== "upcoming");
   const upcomingProducts = filteredProducts.filter((product) => product.status === "upcoming");
+  const promotionProducts = products.filter((product) => product.promotion_is_active);
 
   return (
     <section className="py-10">
@@ -136,9 +136,9 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
         <div className="mb-10">
           <h2 className="text-2xl font-bold tracking-tight">Products in Promotion</h2>
           <p className="mt-1 text-sm text-gray-600">Limited-time offers with active countdown timers.</p>
-          {filteredProducts.filter((p) => p.promotion_is_active).length ? (
+          {promotionProducts.length ? (
             <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.filter((p) => p.promotion_is_active).map((product) => (
+              {promotionProducts.map((product) => (
                 <ProductCard key={`${product.slug}-promo`} product={product} />
               ))}
             </div>

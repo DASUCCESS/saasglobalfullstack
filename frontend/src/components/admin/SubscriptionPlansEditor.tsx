@@ -65,23 +65,38 @@ export default function SubscriptionPlansEditor({
         </div>
       ))}
 
-      <button
-        type="button"
-        className="rounded border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
-        onClick={() =>
-          onChange([
-            ...value,
-            {
-              id: "",
-              name: "",
-              billing_period: "",
-              price_usd: "",
-            },
-          ])
-        }
-      >
-        Add subscription plan
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="rounded border border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-800"
+          onClick={() =>
+            onChange([
+              ...value,
+              {
+                id: "",
+                name: "",
+                billing_period: "",
+                price_usd: "",
+              },
+            ])
+          }
+        >
+          Add subscription plan
+        </button>
+        <button
+          type="button"
+          className="rounded border border-brand-yellow px-3 py-2 text-sm text-brand-yellow hover:bg-neutral-800"
+          onClick={() =>
+            onChange([
+              { id: "monthly", name: "Monthly Access", billing_period: "Per Month", price_usd: "29" },
+              { id: "quarterly", name: "Quarterly Access", billing_period: "Every 3 Months", price_usd: "79" },
+              { id: "yearly", name: "Yearly Access", billing_period: "Per Year", price_usd: "249" },
+            ])
+          }
+        >
+          Prefill Starter Plans
+        </button>
+      </div>
     </div>
   );
 }
