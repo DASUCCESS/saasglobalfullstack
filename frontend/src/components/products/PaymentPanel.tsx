@@ -95,6 +95,7 @@ export default function PaymentPanel({
   const [autoCheckout, setAutoCheckout] = useState(false);
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [selectedSubscriptionPlan, setSelectedSubscriptionPlan] = useState("");
+  const showPaystackOption = isNigeria || process.env.NODE_ENV !== "production";
 
   const selectedPlan = useMemo(
     () => subscriptionPlans.find((plan) => plan.id === selectedSubscriptionPlan),
@@ -150,7 +151,7 @@ export default function PaymentPanel({
     }
 
     const resolvedProvider: "stripe" | "paystack" =
-      provider === "paystack" && !isNigeria ? "stripe" : provider;
+      provider === "paystack" && !showPaystackOption ? "stripe" : provider;
     const resolvedPurchaseMode: "one_time" | "subscription" =
       purchaseMode === "subscription" && subscriptionEnabled ? "subscription" : "one_time";
     if (resolvedPurchaseMode === "subscription" && !selectedSubscriptionPlan) {
@@ -301,7 +302,7 @@ export default function PaymentPanel({
               </span>
             </button>
 
-          {isNigeria ? (
+          {showPaystackOption ? (
             <button
               type="button"
               onClick={() => setProvider("paystack")}
@@ -332,7 +333,9 @@ export default function PaymentPanel({
 
         {!isNigeria ? (
           <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-            Checkout is available in USD via Stripe.
+            {showPaystackOption
+              ? "Checkout defaults to USD via Stripe outside Nigeria (Paystack visible in development)."
+              : "Checkout is available in USD via Stripe."}
           </div>
         ) : null}
 
@@ -353,7 +356,7 @@ export default function PaymentPanel({
           {loading
             ? "Redirecting..."
             : authed
-              ? provider === "paystack" && isNigeria
+              ? provider === "paystack" && showPaystackOption
                 ? "Proceed to Paystack"
                 : "Proceed to Stripe"
               : "Continue with Google to pay"}
