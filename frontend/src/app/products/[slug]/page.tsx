@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { apiGet } from "@/lib/api";
 import PaymentPanel from "@/components/products/PaymentPanel";
+import ProductPriceDisplay from "@/components/products/ProductPriceDisplay";
 import { getViewerGeo } from "@/lib/geo";
 import { getSiteUrl } from "@/lib/env";
 
@@ -18,6 +19,16 @@ interface Product {
   status: "published" | "hidden" | "upcoming";
   price_usd: number;
   price_ngn: number;
+  promotion_enabled?: boolean;
+  promotion_price_usd?: number | null;
+  promotion_price_ngn?: number | null;
+  promotion_start_at?: string | null;
+  promotion_end_at?: string | null;
+  promotion_is_active?: boolean;
+  current_price_usd?: number;
+  current_price_ngn?: number;
+  subscription_enabled?: boolean;
+  subscription_plans?: Array<{ id: string; name: string; billing_period: string; price_usd: number; price_ngn?: number }>;
   delivery_type?: "none" | "download" | "access" | "both";
   content?: {
     hero_title?: string;
@@ -175,7 +186,7 @@ export default async function ProductDetail({
           <div className="relative mx-auto max-w-[1520px] px-4 pb-14 sm:px-6 xl:px-8">
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_360px] xl:grid-cols-[minmax(0,1.55fr)_380px] 2xl:grid-cols-[minmax(0,1.65fr)_400px] 2xl:gap-10">
               <div className="min-w-0 space-y-8">
-                <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,520px)] xl:items-center">
+                <div className="grid gap-8">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-600">
@@ -443,15 +454,16 @@ export default async function ProductDetail({
                             ) : null}
                           </div>
 
-                          <p className="mt-2 text-2xl font-bold tracking-tight xl:text-3xl">
-                            ${product.price_usd.toLocaleString()}
-                          </p>
-
-                          {showNaira ? (
-                            <p className="mt-1 text-sm text-white/80">
-                              ₦{product.price_ngn.toLocaleString()}
-                            </p>
-                          ) : null}
+                          <ProductPriceDisplay
+                            className="mt-2 [&_.text-gray-950]:text-white [&_.text-gray-500]:text-white/70 [&_.text-gray-600]:text-white/80"
+                            priceUsd={product.price_usd}
+                            priceNgn={product.price_ngn}
+                            currentPriceUsd={product.current_price_usd}
+                            currentPriceNgn={product.current_price_ngn}
+                            promotionIsActive={product.promotion_is_active}
+                            promotionEndAt={product.promotion_end_at || undefined}
+                            showNaira={showNaira}
+                          />
                         </div>
                       </div>
 
@@ -460,10 +472,12 @@ export default async function ProductDetail({
                           <div className="rounded-3xl border border-gray-200 bg-white p-2">
                             <PaymentPanel
                               slug={product.slug}
-                              priceUsd={product.price_usd}
-                              priceNgn={product.price_ngn}
+                              priceUsd={product.current_price_usd || product.price_usd}
+                              priceNgn={product.current_price_ngn || product.price_ngn}
                               showNaira={showNaira}
                               isNigeria={showNaira}
+                              subscriptionEnabled={product.subscription_enabled}
+                              subscriptionPlans={product.subscription_plans || []}
                             />
                           </div>
                         ) : (
@@ -515,15 +529,16 @@ export default async function ProductDetail({
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">
                           Price
                         </p>
-                        <p className="mt-2 text-3xl font-bold tracking-tight text-gray-950">
-                          ${product.price_usd.toLocaleString()}
-                        </p>
-
-                        {showNaira ? (
-                          <p className="mt-1 text-sm text-gray-600">
-                            ₦{product.price_ngn.toLocaleString()}
-                          </p>
-                        ) : null}
+                        <ProductPriceDisplay
+                          className="mt-2"
+                          priceUsd={product.price_usd}
+                          priceNgn={product.price_ngn}
+                          currentPriceUsd={product.current_price_usd}
+                          currentPriceNgn={product.current_price_ngn}
+                          promotionIsActive={product.promotion_is_active}
+                          promotionEndAt={product.promotion_end_at || undefined}
+                          showNaira={showNaira}
+                        />
                       </div>
                     </div>
                   </div>
@@ -531,10 +546,12 @@ export default async function ProductDetail({
                   <div className="min-w-0 overflow-hidden rounded-3xl border border-gray-200 bg-white p-2 shadow-lg">
                     <PaymentPanel
                       slug={product.slug}
-                      priceUsd={product.price_usd}
-                      priceNgn={product.price_ngn}
+                      priceUsd={product.current_price_usd || product.price_usd}
+                      priceNgn={product.current_price_ngn || product.price_ngn}
                       showNaira={showNaira}
                       isNigeria={showNaira}
+                      subscriptionEnabled={product.subscription_enabled}
+                      subscriptionPlans={product.subscription_plans || []}
                     />
                   </div>
                 </div>
@@ -568,8 +585,8 @@ export default async function ProductDetail({
             <p className="text-xs text-gray-600">
               {!isUpcoming
                 ? showNaira
-                  ? `$${product.price_usd.toLocaleString()} • ₦${product.price_ngn.toLocaleString()} • ${deliveryLabel}`
-                  : `$${product.price_usd.toLocaleString()} • ${deliveryLabel}`
+                  ? `$${(product.current_price_usd || product.price_usd).toLocaleString()} • ₦${(product.current_price_ngn || product.price_ngn).toLocaleString()} • ${deliveryLabel}`
+                  : `$${(product.current_price_usd || product.price_usd).toLocaleString()} • ${deliveryLabel}`
                 : "Upcoming product"}
             </p>
           </div>
