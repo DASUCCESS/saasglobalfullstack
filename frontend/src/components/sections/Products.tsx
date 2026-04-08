@@ -171,7 +171,7 @@ export default function Products() {
 
               {product.subscriptionEnabled && (product.subscriptionPlans || []).length ? (
                 <>
-                  <span className="mt-2 text-xs font-bold text-brand-yellow">
+                  <span className="mt-2 text-xs font-bold text-[#a66b00]">
                     This product supports both one-time purchase and subscription.
                   </span>
                   <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
@@ -231,7 +231,7 @@ export default function Products() {
 
                   {item.subscriptionEnabled && (item.subscriptionPlans || []).length ? (
                     <>
-                      <span className="mt-2 text-xs font-bold text-brand-black">
+                      <span className="mt-2 text-xs font-bold text-[#a66b00]">
                        This product supports both one-time purchase and subscription.
                       </span>
                       <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
