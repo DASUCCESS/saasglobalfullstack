@@ -22,6 +22,7 @@ const links = [
 export default function AdminShell({ title, children }: { title: string; children?: ReactNode }) {
   const [ok, setOk] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = getToken();
@@ -51,12 +52,21 @@ export default function AdminShell({ title, children }: { title: string; childre
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white flex">
-        <aside className="hidden w-72 border-r border-neutral-800 bg-neutral-900 p-4 md:block">
+    <main className="relative min-h-screen bg-neutral-950 text-white md:flex">
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-neutral-800 bg-neutral-900 p-4 transition-transform md:static md:translate-x-0 ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <h1 className="text-lg font-semibold">Admin Dashboard</h1>
           <nav className="mt-6 space-y-2 text-sm text-neutral-300">
             {links.map(([label, href]) => (
-              <Link key={href} href={href} className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-neutral-800 cursor-pointer">
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-neutral-800 cursor-pointer"
+              >
                 <span>{label}</span>
                 {href === "/admin/notifications" && unread > 0 ? (
                   <span className="rounded-full bg-brand-yellow px-2 py-0.5 text-xs font-bold text-black">{unread}</span>
@@ -68,7 +78,17 @@ export default function AdminShell({ title, children }: { title: string; childre
 
         <section className="flex-1 p-6 md:p-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <h2 className="text-2xl font-bold">{title}</h2>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-label="Toggle admin menu"
+                onClick={() => setMobileMenuOpen((prev) => !prev)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-700 text-neutral-100 md:hidden"
+              >
+                ☰
+              </button>
+              <h2 className="text-2xl font-bold">{title}</h2>
+            </div>
             <button
               onClick={() => {
                 clearToken();
@@ -81,6 +101,14 @@ export default function AdminShell({ title, children }: { title: string; childre
           </div>
           {children ? <div className="mt-6">{children}</div> : null}
         </section>
+        {mobileMenuOpen ? (
+          <button
+            type="button"
+            aria-label="Close admin menu"
+            className="fixed inset-0 z-30 bg-black/50 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        ) : null}
       </main>
   );
 }

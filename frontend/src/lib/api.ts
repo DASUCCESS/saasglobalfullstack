@@ -25,11 +25,7 @@ export type PaginatedResponse<T> = {
 function defaultCacheForPath(path: string, hasToken: boolean): RequestCache {
   if (hasToken) return "no-store";
 
-  if (
-    path.startsWith("/products-page/") ||
-    path.startsWith("/settings/public/") ||
-    (path.startsWith("/products/") && (path.includes("?") || /^\/products\/[^/]+\/?$/.test(path)))
-  ) {
+  if (path.startsWith("/settings/public/")) {
     return "force-cache";
   }
 

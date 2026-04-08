@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { apiGet } from "@/lib/api";
 import Link from "next/link";
+import { getSiteUrl } from "@/lib/env";
 
 type Product = {
   slug: string;
@@ -11,6 +12,7 @@ type Product = {
   status: "published" | "hidden" | "upcoming";
   is_visible: boolean;
   image_url?: string;
+  seo?: { og_image?: string };
   features?: { title: string }[];
   content?: { features?: { title: string }[] };
 };
@@ -21,19 +23,59 @@ type PublicSettings = {
   };
 };
 
+function resolveAbsoluteImageUrl(url?: string) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return getSiteUrl(url);
+}
+
 export async function generateMetadata() {
   const [payload, settings] = await Promise.all([
     apiGet<{ products: Product[] }>("/products-page/"),
     apiGet<PublicSettings>("/settings/public/"),
   ]);
 
-  const visibleCount = (payload?.products || []).filter((p) => p.is_visible).length;
+  const visibleProducts = (payload?.products || []).filter((p) => p.is_visible);
+  const visibleCount = visibleProducts.length;
   const siteName = settings?.site?.site_name || "SaaSGlobal Hub";
+  const firstProductWithImage = visibleProducts.find((p) => p.image_url || p.seo?.og_image);
+  const productsOgImage = resolveAbsoluteImageUrl(firstProductWithImage?.image_url || firstProductWithImage?.seo?.og_image);
+  const seoTitle = `Best Digital Products, SaaS Templates, AI Tools & Ecommerce Solutions | ${siteName}`;
+  const description = `Shop ${visibleCount} high-converting digital products including AI tools, SaaS templates, ecommerce solutions, automation systems, business growth resources, and ready-to-use online business assets.`;
+  const keywords = [
+    "best digital products",
+    "buy digital products online",
+    "AI tools for business",
+    "SaaS templates",
+    "ecommerce solutions",
+    "automation tools",
+    "online business tools",
+    "startup growth tools",
+    "digital downloads",
+    "software products",
+    "website templates",
+    "business productivity tools",
+    "SaaSGlobal Hub products",
+  ];
 
   return {
-    title: `Products | ${siteName}`,
-    description: `Explore ${visibleCount} our digital products available on ${siteName}.`,
+    title: seoTitle,
+    description,
+    keywords,
     alternates: { canonical: "/products" },
+    openGraph: {
+      title: seoTitle,
+      description,
+      url: "/products",
+      type: "website",
+      images: productsOgImage ? [{ url: productsOgImage }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seoTitle,
+      description,
+      images: productsOgImage ? [productsOgImage] : [],
+    },
   };
 }
 
@@ -60,6 +102,7 @@ export default async function ProductsIndexPage() {
             {products.map((p) => {
               const disabled = p.status === "upcoming";
               const featureList = (p.features?.length ? p.features : p.content?.features || []).slice(0, 3);
+              const productImage = p.image_url || p.seo?.og_image || "";
 
               return (
                 <Link
@@ -73,8 +116,8 @@ export default async function ProductsIndexPage() {
                     {disabled ? "Upcoming" : p.badge || "Available"}
                   </div>
 
-                  {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="h-40 w-full object-cover" />
+                  {productImage ? (
+                    <img src={productImage} alt={p.name} className="h-40 w-full object-cover" />
                   ) : (
                     <div className="h-40 w-full bg-gradient-to-br from-black via-zinc-900 to-yellow-400" />
                   )}

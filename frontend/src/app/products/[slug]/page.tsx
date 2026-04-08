@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { apiGet } from "@/lib/api";
 import PaymentPanel from "@/components/products/PaymentPanel";
 import { getViewerGeo } from "@/lib/geo";
+import { getSiteUrl } from "@/lib/env";
 
 interface Product {
   name: string;
@@ -44,6 +44,12 @@ interface Product {
   faqs?: { q: string; a: string }[];
 }
 
+function resolveAbsoluteImageUrl(url?: string) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return getSiteUrl(url);
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -73,7 +79,7 @@ export async function generateMetadata({
     product.tagline;
 
   const canonical = product.seo?.canonical_url || `/products/${product.slug}`;
-  const ogImage = product.seo?.og_image || product.image_url || "";
+  const ogImage = resolveAbsoluteImageUrl(product.seo?.og_image || product.image_url);
 
   return {
     title,
@@ -86,6 +92,12 @@ export async function generateMetadata({
       type: "website",
       url: canonical,
       images: ogImage ? [{ url: ogImage }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.seo?.og_title || title,
+      description: product.seo?.og_description || description,
+      images: ogImage ? [ogImage] : [],
     },
   };
 }
@@ -147,6 +159,7 @@ export default async function ProductDetail({
   const heroTitle = product.content?.hero_title || product.name;
   const heroDescription =
     product.content?.hero_description || product.short_description || product.tagline;
+  const productImage = product.image_url || product.seo?.og_image || "";
 
   const isUpcoming = product.status === "upcoming";
   const deliveryLabel = getDeliveryLabel(product.delivery_type);
@@ -229,14 +242,11 @@ export default async function ProductDetail({
                   <div className="min-w-0">
                     <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-yellow-500">
-                        {product.image_url ? (
-                          <Image
-                            src={product.image_url}
+                        {productImage ? (
+                          <img
+                            src={productImage}
                             alt={product.name}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 1280px) 100vw, 520px"
-                            priority
+                            className="absolute inset-0 h-full w-full object-cover"
                           />
                         ) : (
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_30%),linear-gradient(135deg,#0a0a0a_0%,#18181b_55%,#facc15_100%)]" />
