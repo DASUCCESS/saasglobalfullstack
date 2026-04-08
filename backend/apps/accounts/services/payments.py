@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.accounts.models import PaymentEventLog, PurchaseOrder
 from apps.catalog.models import Product
+from apps.catalog.subscription_periods import resolve_subscription_interval
 from apps.core.models import PaymentSettings
 
 try:
@@ -53,6 +54,13 @@ def _make_payment_reference() -> str:
     return f"ORD-{uuid.uuid4().hex[:14].upper()}"
 
 
+def _resolve_subscription_recurring(order: PurchaseOrder) -> Tuple[str, int]:
+    resolved = resolve_subscription_interval(order.subscription_plan_id or "", order.subscription_billing_period or "")
+    if not resolved:
+        raise PaymentError("Unsupported subscription billing period for Stripe.")
+    return resolved
+
+
 def _resolve_fulfillment(product: Product) -> Tuple[str, str, str, str]:
     delivery_type = product.delivery_type or "none"
     access_url = product.access_url or ""
@@ -71,6 +79,8 @@ def get_or_create_pending_order(
     product: Product,
     provider: str,
     idempotency_key: str,
+    purchase_mode: str = "one_time",
+    subscription_plan_id: str = "",
 ) -> PurchaseOrder:
     pay_settings = PaymentSettings.load()
 
@@ -85,21 +95,58 @@ def get_or_create_pending_order(
 
     fulfillment_type, access_url, access_label, access_instructions = _resolve_fulfillment(product)
 
+    resolved_purchase_mode = "subscription" if purchase_mode == "subscription" else "one_time"
+    resolved_plan_id = ""
+    resolved_plan_name = ""
+    resolved_billing_period = ""
+
+    if resolved_purchase_mode == "subscription":
+        if not product.subscription_enabled:
+            raise PaymentError("Subscription mode is not enabled for this product.")
+        plans = product.normalized_subscription_plans()
+        selected_plan = next((plan for plan in plans if plan["id"] == (subscription_plan_id or "").strip()), None)
+        if not selected_plan:
+            raise PaymentError("Subscription plan not found for this product.")
+        effective_price_usd = Decimal(str(selected_plan["price_usd"]))
+        resolved_plan_id = selected_plan["id"]
+        resolved_plan_name = selected_plan["name"]
+        resolved_billing_period = selected_plan["billing_period"]
+        if fulfillment_type == "download":
+            raise PaymentError("Download-only products cannot be sold in subscription mode. Add access fulfillment first.")
+        if fulfillment_type in {"access", "both"} and not access_url:
+            raise PaymentError("Subscription mode requires an access URL when delivery type includes access.")
+    else:
+        effective_price_usd = product.current_price_usd(now=timezone.now())
+
     with transaction.atomic():
+        download_url = ""
+        resolved_fulfillment_type = fulfillment_type
+        if resolved_purchase_mode == "one_time":
+            download_url = product.downloadable_zip_url or ""
+        else:
+            if fulfillment_type == "both":
+                resolved_fulfillment_type = "access"
+            elif fulfillment_type == "download":
+                resolved_fulfillment_type = "none"
+
         order = PurchaseOrder.objects.create(
             user=user,
             product=product,
             provider=provider,
-            amount=product.price_usd,
-            amount_ngn=Decimal(product.price_usd) * Decimal(pay_settings.usd_ngn_rate),
+            amount=effective_price_usd,
+            amount_ngn=Decimal(effective_price_usd) * Decimal(pay_settings.usd_ngn_rate),
+            purchase_mode=resolved_purchase_mode,
+            subscription_plan_id=resolved_plan_id,
+            subscription_plan_name=resolved_plan_name,
+            subscription_billing_period=resolved_billing_period,
             payment_reference=_make_payment_reference(),
             idempotency_key=idempotency_key,
-            fulfillment_type=fulfillment_type,
+            fulfillment_type=resolved_fulfillment_type,
             access_url=access_url,
             access_label=access_label,
             access_instructions=access_instructions,
             delivery_payload={
-                "download_url": product.downloadable_zip_url or "",
+                "download_url": download_url,
             },
         )
     return order
@@ -134,31 +181,58 @@ def initialize_stripe_checkout(order: PurchaseOrder) -> Dict[str, Any]:
     if unit_amount <= 0:
         raise PaymentError("Invalid Stripe unit amount.")
 
+    session_mode = "subscription" if order.purchase_mode == "subscription" else "payment"
     session_payload = {
-        "mode": "payment",
+        "mode": session_mode,
         "success_url": success_url,
         "cancel_url": cancel_url,
         "payment_method_types": ["card"],
-        "line_items": [
-            {
-                "quantity": 1,
-                "price_data": {
-                    "currency": "usd",
-                    "unit_amount": unit_amount,
-                    "product_data": {
-                        "name": order.product.name,
-                        "description": order.product.tagline or order.product.short_description or "",
-                    },
-                },
-            }
-        ],
         "metadata": {
             "order_id": str(order.id),
             "payment_reference": order.payment_reference,
             "user_id": str(order.user_id),
             "product_slug": order.product.slug,
+            "purchase_mode": order.purchase_mode,
+            "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
+
+    common_product_data = {
+        "name": order.product.name,
+        "description": (
+            f"{order.subscription_plan_name} ({order.subscription_billing_period}) subscription"
+            if order.purchase_mode == "subscription"
+            else (order.product.tagline or order.product.short_description or "")
+        ),
+    }
+
+    if order.purchase_mode == "subscription":
+        recurring_interval, recurring_count = _resolve_subscription_recurring(order)
+        session_payload["line_items"] = [
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": unit_amount,
+                    "recurring": {
+                        "interval": recurring_interval,
+                        "interval_count": recurring_count,
+                    },
+                    "product_data": common_product_data,
+                },
+            }
+        ]
+    else:
+        session_payload["line_items"] = [
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": unit_amount,
+                    "product_data": common_product_data,
+                },
+            }
+        ]
 
     if order.user.email:
         session_payload["customer_email"] = order.user.email
@@ -229,8 +303,47 @@ def initialize_paystack_checkout(order: PurchaseOrder) -> Dict[str, Any]:
             "payment_reference": order.payment_reference,
             "product_slug": order.product.slug,
             "user_id": order.user_id,
+            "purchase_mode": order.purchase_mode,
+            "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
+
+    if order.purchase_mode == "subscription":
+        interval, interval_count = _resolve_subscription_recurring(order)
+        paystack_interval = ""
+        if interval == "year":
+            paystack_interval = "annually"
+        elif interval == "month" and interval_count == 1:
+            paystack_interval = "monthly"
+        elif interval == "month" and interval_count == 3:
+            paystack_interval = "quarterly"
+        elif interval == "month" and interval_count == 6:
+            paystack_interval = "biannually"
+        else:
+            raise PaymentError("Unsupported subscription cadence for Paystack.")
+
+        plan_response = requests.post(
+            "https://api.paystack.co/plan",
+            headers={
+                "Authorization": f"Bearer {settings.paystack_secret_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "name": f"{order.product.name} - {order.subscription_plan_name or order.subscription_plan_id}",
+                "interval": paystack_interval,
+                "amount": int(Decimal(order.amount_ngn) * 100),
+                "currency": "NGN",
+            },
+            timeout=20,
+        )
+        plan_response.raise_for_status()
+        plan_body = plan_response.json()
+        if not plan_body.get("status"):
+            raise PaymentError(plan_body.get("message") or "Paystack subscription plan creation failed.")
+        plan_code = ((plan_body.get("data") or {}).get("plan_code") or "").strip()
+        if not plan_code:
+            raise PaymentError("Paystack subscription plan code was not returned.")
+        payload["plan"] = plan_code
 
     response = requests.post(
         "https://api.paystack.co/transaction/initialize",

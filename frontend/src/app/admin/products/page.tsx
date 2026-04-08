@@ -12,6 +12,7 @@ import ProductSeoEditor, {
   ProductSeoForm,
   serializeProductSeo,
 } from "@/components/admin/ProductSeoEditor";
+import SubscriptionPlansEditor, { SubscriptionPlanForm } from "@/components/admin/SubscriptionPlansEditor";
 import { AdminEmpty, AdminPanel } from "@/components/admin/ui/AdminUI";
 import { apiDelete, apiGet, apiPatch, apiPost, apiUploadResult } from "@/lib/api";
 import { getToken } from "@/lib/auth";
@@ -38,6 +39,12 @@ type Product = {
   support_url?: string;
   support_email?: string;
   price_usd: string | number;
+  promotion_enabled?: boolean;
+  promotion_price_usd?: string | number | null;
+  promotion_start_at?: string | null;
+  promotion_end_at?: string | null;
+  subscription_enabled?: boolean;
+  subscription_plans?: SubscriptionPlanForm[];
   status: ProductStatus;
   is_visible: boolean;
   delivery_type: DeliveryType;
@@ -80,12 +87,39 @@ const emptyProduct: Product = {
   support_url: "",
   support_email: "",
   price_usd: 0,
+  promotion_enabled: false,
+  promotion_price_usd: null,
+  promotion_start_at: "",
+  promotion_end_at: "",
+  subscription_enabled: false,
+  subscription_plans: [],
   status: "hidden",
   is_visible: false,
   delivery_type: "download",
   content: {},
   seo: {},
 };
+
+const defaultSubscriptionPlans: SubscriptionPlanForm[] = [
+  { id: "monthly", name: "Monthly Access", billing_period: "Per Month", price_usd: "29" },
+  { id: "quarterly", name: "Quarterly Access", billing_period: "Every 3 Months", price_usd: "79" },
+  { id: "yearly", name: "Yearly Access", billing_period: "Per Year", price_usd: "249" },
+];
+
+function toLocalDateTimeInput(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function localDateTimeToUtcIso(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
 
 export default function Page() {
   const token = getToken();
@@ -99,6 +133,7 @@ export default function Page() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlanForm[]>([]);
 
   const { data, page, setPage, reload, loading } = usePaginatedResource<Product>(
     (p, s) => `/products/?page=${p}&page_size=${s}`,
@@ -127,6 +162,7 @@ export default function Page() {
     setSelected({ ...emptyProduct });
     setContent(emptyContent);
     setSeo(emptySeo);
+    setSubscriptionPlans([]);
   };
 
   const loadProductForEdit = async (slug: string) => {
@@ -147,6 +183,14 @@ export default function Page() {
       ...emptyProduct,
       ...res,
     });
+    setSubscriptionPlans(
+      (res.subscription_plans || []).map((plan) => ({
+        id: plan.id || "",
+        name: plan.name || "",
+        billing_period: plan.billing_period || "",
+        price_usd: String(plan.price_usd || ""),
+      }))
+    );
     setContent(normalizeProductContent(res.content));
     setSeo(normalizeProductSeo(res.seo));
   };
@@ -186,6 +230,20 @@ export default function Page() {
     return {
       ...selected,
       price_usd: Number(selected.price_usd || 0),
+      promotion_price_usd:
+        selected.promotion_price_usd === "" || selected.promotion_price_usd == null
+          ? null
+          : Number(selected.promotion_price_usd),
+      promotion_start_at: selected.promotion_start_at || null,
+      promotion_end_at: selected.promotion_end_at || null,
+      subscription_plans: subscriptionPlans
+        .map((plan) => ({
+          id: plan.id.trim(),
+          name: plan.name.trim(),
+          billing_period: plan.billing_period.trim(),
+          price_usd: Number(plan.price_usd || 0),
+        }))
+        .filter((plan) => plan.id && plan.name && plan.billing_period && plan.price_usd > 0),
       content: serializeProductContent(content),
       seo: serializeProductSeo(seo),
     };
@@ -426,6 +484,60 @@ export default function Page() {
                     onChange={(e) => setSelected({ ...selected, price_usd: e.target.value })}
                     placeholder="USD price"
                   />
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={!!selected.promotion_enabled}
+                      onChange={(e) => setSelected({ ...selected, promotion_enabled: e.target.checked })}
+                    />
+                    Enable promotion
+                  </label>
+
+                  {!!selected.promotion_enabled ? (
+                    <>
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"
+                        value={selected.promotion_price_usd ?? ""}
+                        onChange={(e) => setSelected({ ...selected, promotion_price_usd: e.target.value })}
+                        placeholder="Promotion USD price"
+                      />
+                      <input
+                        type="datetime-local"
+                        className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"
+                        value={toLocalDateTimeInput(selected.promotion_start_at)}
+                        onChange={(e) => setSelected({ ...selected, promotion_start_at: localDateTimeToUtcIso(e.target.value) })}
+                      />
+                      <input
+                        type="datetime-local"
+                        className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"
+                        value={toLocalDateTimeInput(selected.promotion_end_at)}
+                        onChange={(e) => setSelected({ ...selected, promotion_end_at: localDateTimeToUtcIso(e.target.value) })}
+                      />
+                    </>
+                  ) : null}
+
+                  <label className="flex items-center gap-2 text-sm md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={!!selected.subscription_enabled}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        setSelected({ ...selected, subscription_enabled: enabled });
+                        if (enabled && !subscriptionPlans.length) {
+                          setSubscriptionPlans(defaultSubscriptionPlans);
+                        }
+                      }}
+                    />
+                    Enable subscription mode
+                  </label>
+
+                  {!!selected.subscription_enabled ? (
+                    <div className="md:col-span-2">
+                      <SubscriptionPlansEditor value={subscriptionPlans} onChange={setSubscriptionPlans} />
+                    </div>
+                  ) : null}
 
                   <select
                     className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"

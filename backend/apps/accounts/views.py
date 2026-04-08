@@ -305,6 +305,8 @@ def start_payment(request):
             product=product,
             provider=data["provider"],
             idempotency_key=idempotency_key,
+            purchase_mode=data.get("purchase_mode") or "one_time",
+            subscription_plan_id=data.get("subscription_plan_id") or "",
         )
         payload = initialize_payment(order)
     except PaymentError as exc:
