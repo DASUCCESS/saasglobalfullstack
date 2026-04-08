@@ -1,8 +1,8 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { apiGet } from "@/lib/api";
-import Link from "next/link";
 import { getSiteUrl } from "@/lib/env";
+import ProductsCatalog from "@/components/products/ProductsCatalog";
 
 type Product = {
   slug: string;
@@ -97,54 +97,7 @@ export default async function ProductsIndexPage() {
           </div>
         </section>
 
-        <section className="py-10">
-          <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 lg:px-8">
-            {products.map((p) => {
-              const disabled = p.status === "upcoming";
-              const featureList = (p.features?.length ? p.features : p.content?.features || []).slice(0, 3);
-              const productImage = p.image_url || p.seo?.og_image || "";
-
-              return (
-                <Link
-                  key={p.slug}
-                  href={`/products/${p.slug}`}
-                  className={`group relative flex h-full transform-gpu flex-col overflow-hidden rounded-xl border bg-white shadow-xl transition ${
-                    disabled ? "opacity-60 grayscale" : "cursor-pointer md:hover:scale-105"
-                  }`}
-                >
-                  <div className="absolute left-3 top-3 z-10 rounded-full bg-black/90 px-2 py-1 text-xs text-white shadow">
-                    {disabled ? "Upcoming" : p.badge || "Available"}
-                  </div>
-
-                  {productImage ? (
-                    <img src={productImage} alt={p.name} className="h-40 w-full object-cover" />
-                  ) : (
-                    <div className="h-40 w-full bg-gradient-to-br from-black via-zinc-900 to-yellow-400" />
-                  )}
-
-                  <div className="flex flex-1 flex-col p-6">
-                    <h2 className="break-words text-xl font-semibold">{p.name}</h2>
-                    <p className="mt-1 break-words text-sm text-gray-700">{p.tagline}</p>
-
-                    <ul className="mt-4 space-y-2 text-sm">
-                      {featureList.map((f) => (
-                        <li key={f.title} className="break-words leading-6">
-                          {f.title}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-6">
-                      <span className="inline-block rounded-md bg-black px-4 py-2 text-white shadow-xl">
-                        {disabled ? "Coming soon" : "View details"}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
+        <ProductsCatalog products={products} />
       </main>
       <Footer />
     </>
