@@ -1,0 +1,26 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+<p class="text">
+  Hello {{ customer_name }},
+</p>
+
+<p class="text">
+  Your account signup was successful. Welcome to SaaSGlobal Hub.
+</p>
+
+<div class="card">
+  <div class="row">
+    <span class="label">Status</span>
+    <div class="value">Signup completed successfully</div>
+  </div>
+</div>
+
+<p class="text">
+  You can now browse products, manage purchases, and receive support updates from your dashboard.
+</p>
+
+<div class="button-wrap">
+  <a href="{{ dashboard_url }}" class="button">{{ cta_label }}</a>
+</div>
+{% endblock %}

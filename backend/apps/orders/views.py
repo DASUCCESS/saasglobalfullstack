@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+from django.contrib.auth import get_user_model
 
 from apps.accounts.services.emails import send_platform_email
 from apps.core.models import ContactSettings, SiteSettings
@@ -55,11 +56,21 @@ def create_request(request):
 
     if lead.channel == "email":
         try:
-            admin_recipient = (contact_settings.smtp_username or "").strip()
-            if admin_recipient:
+            User = get_user_model()
+            admin_recipients = list(
+                User.objects.filter(is_staff=True, is_active=True)
+                .exclude(email="")
+                .values_list("email", flat=True)
+            )
+            fallback_recipient = (contact_settings.smtp_username or "").strip()
+
+            if not admin_recipients and fallback_recipient:
+                admin_recipients = [fallback_recipient]
+
+            if admin_recipients:
                 email_sent = send_platform_email(
                     subject=subject,
-                    recipient_list=[admin_recipient],
+                    recipient_list=admin_recipients,
                     template_name="emails/request_lead.html",
                     context={
                         "site_name": site_settings.site_name or "SaaSGlobal Hub",
@@ -79,7 +90,7 @@ def create_request(request):
                     },
                 )
             else:
-                email_error = "Admin recipient email is not configured."
+                email_error = "No active admin recipient email is configured."
         except Exception as exc:
             email_error = str(exc)
 
