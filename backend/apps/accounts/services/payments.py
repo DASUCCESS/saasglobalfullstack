@@ -53,6 +53,22 @@ def _make_payment_reference() -> str:
     return f"ORD-{uuid.uuid4().hex[:14].upper()}"
 
 
+def _resolve_subscription_recurring(order: PurchaseOrder) -> Tuple[str, int]:
+    source = f"{order.subscription_plan_id} {order.subscription_billing_period}".lower()
+    if any(token in source for token in ["month", "monthly"]):
+        interval = "month"
+        count = 1
+    elif any(token in source for token in ["quarter", "quarterly", "3 month", "3-month"]):
+        interval = "month"
+        count = 3
+    elif any(token in source for token in ["year", "yearly", "annual", "annually", "12 month"]):
+        interval = "year"
+        count = 1
+    else:
+        raise PaymentError("Unsupported subscription billing period for Stripe.")
+    return interval, count
+
+
 def _resolve_fulfillment(product: Product) -> Tuple[str, str, str, str]:
     delivery_type = product.delivery_type or "none"
     access_url = product.access_url or ""
@@ -103,6 +119,10 @@ def get_or_create_pending_order(
         resolved_plan_id = selected_plan["id"]
         resolved_plan_name = selected_plan["name"]
         resolved_billing_period = selected_plan["billing_period"]
+        if fulfillment_type == "download":
+            raise PaymentError("Download-only products cannot be sold in subscription mode. Add access fulfillment first.")
+        if fulfillment_type == "both" and not access_url:
+            raise PaymentError("Subscription mode requires an access URL when delivery type includes access.")
     else:
         effective_price_usd = product.current_price_usd(now=timezone.now())
 
@@ -169,28 +189,12 @@ def initialize_stripe_checkout(order: PurchaseOrder) -> Dict[str, Any]:
     if unit_amount <= 0:
         raise PaymentError("Invalid Stripe unit amount.")
 
+    session_mode = "subscription" if order.purchase_mode == "subscription" else "payment"
     session_payload = {
-        "mode": "payment",
+        "mode": session_mode,
         "success_url": success_url,
         "cancel_url": cancel_url,
         "payment_method_types": ["card"],
-        "line_items": [
-            {
-                "quantity": 1,
-                "price_data": {
-                    "currency": "usd",
-                    "unit_amount": unit_amount,
-                    "product_data": {
-                        "name": order.product.name,
-                        "description": (
-                            f"{order.subscription_plan_name} ({order.subscription_billing_period}) subscription"
-                            if order.purchase_mode == "subscription"
-                            else (order.product.tagline or order.product.short_description or "")
-                        ),
-                    },
-                },
-            }
-        ],
         "metadata": {
             "order_id": str(order.id),
             "payment_reference": order.payment_reference,
@@ -200,6 +204,43 @@ def initialize_stripe_checkout(order: PurchaseOrder) -> Dict[str, Any]:
             "subscription_plan_id": order.subscription_plan_id or "",
         },
     }
+
+    common_product_data = {
+        "name": order.product.name,
+        "description": (
+            f"{order.subscription_plan_name} ({order.subscription_billing_period}) subscription"
+            if order.purchase_mode == "subscription"
+            else (order.product.tagline or order.product.short_description or "")
+        ),
+    }
+
+    if order.purchase_mode == "subscription":
+        recurring_interval, recurring_count = _resolve_subscription_recurring(order)
+        session_payload["line_items"] = [
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": unit_amount,
+                    "recurring": {
+                        "interval": recurring_interval,
+                        "interval_count": recurring_count,
+                    },
+                    "product_data": common_product_data,
+                },
+            }
+        ]
+    else:
+        session_payload["line_items"] = [
+            {
+                "quantity": 1,
+                "price_data": {
+                    "currency": "usd",
+                    "unit_amount": unit_amount,
+                    "product_data": common_product_data,
+                },
+            }
+        ]
 
     if order.user.email:
         session_payload["customer_email"] = order.user.email
