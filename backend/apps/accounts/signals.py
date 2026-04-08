@@ -3,7 +3,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from apps.accounts.models import ConversationMessage, PurchaseOrder, UserProfile
-from apps.accounts.services.notifications import create_notification, notify_new_message, notify_order_failed, notify_order_paid
+from apps.accounts.services.emails import build_frontend_url, send_signup_welcome_email
+from apps.accounts.services.notifications import notify_new_message, notify_order_failed, notify_order_paid
 
 
 @receiver(post_save, sender=User)
@@ -16,6 +17,12 @@ def ensure_user_profile(sender, instance, created, **kwargs):
     if profile.role != desired_role:
         profile.role = desired_role
         profile.save(update_fields=["role"])
+    if created and instance.email:
+        send_signup_welcome_email(
+            recipient=instance.email,
+            customer_name=instance.get_full_name() or instance.first_name or "there",
+            dashboard_url=build_frontend_url("/dashboard"),
+        )
 
 
 @receiver(post_save, sender=ConversationMessage)

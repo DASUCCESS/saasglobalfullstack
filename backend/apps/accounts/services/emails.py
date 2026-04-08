@@ -5,6 +5,21 @@ from django.template.loader import render_to_string
 from apps.core.models import ContactSettings
 
 
+def build_frontend_url(path: str) -> str:
+    cleaned_path = (path or "").strip()
+    if not cleaned_path:
+        return ""
+    if cleaned_path.startswith("http://") or cleaned_path.startswith("https://"):
+        return cleaned_path
+
+    base_url = getattr(settings, "FRONTEND_BASE_URL", "").rstrip("/")
+    if not base_url:
+        return cleaned_path
+    if not cleaned_path.startswith("/"):
+        cleaned_path = f"/{cleaned_path}"
+    return f"{base_url}{cleaned_path}"
+
+
 def _get_platform_email_config():
     contact = ContactSettings.load()
 
@@ -87,6 +102,8 @@ def send_order_paid_email(
     product_name: str,
     order_reference: str,
     dashboard_url: str,
+    amount_paid: str,
+    payment_provider: str,
 ):
     return send_platform_email(
         subject=f"Payment confirmed: {product_name}",
@@ -98,6 +115,8 @@ def send_order_paid_email(
             "customer_name": customer_name,
             "product_name": product_name,
             "order_reference": order_reference,
+            "amount_paid": amount_paid,
+            "payment_provider": payment_provider,
             "dashboard_url": dashboard_url,
             "cta_label": "Open Dashboard",
             "site_name": "SaaSGlobal Hub",
@@ -137,6 +156,7 @@ def send_support_reply_email(
     product_name: str,
     order_reference: str,
     sender_name: str,
+    message_content: str,
     order_url: str,
 ):
     return send_platform_email(
@@ -150,6 +170,7 @@ def send_support_reply_email(
             "product_name": product_name,
             "order_reference": order_reference,
             "sender_name": sender_name,
+            "message_content": message_content,
             "order_url": order_url,
             "cta_label": "Open Conversation",
             "site_name": "SaaSGlobal Hub",
@@ -164,6 +185,7 @@ def send_customer_message_alert_email(
     product_name: str,
     order_reference: str,
     sender_name: str,
+    message_content: str,
     order_url: str,
 ):
     return send_platform_email(
@@ -177,8 +199,63 @@ def send_customer_message_alert_email(
             "product_name": product_name,
             "order_reference": order_reference,
             "sender_name": sender_name,
+            "message_content": message_content,
             "order_url": order_url,
             "cta_label": "Review Message",
+            "site_name": "SaaSGlobal Hub",
+        },
+    )
+
+
+def send_signup_welcome_email(
+    *,
+    recipient: str,
+    customer_name: str,
+    dashboard_url: str,
+):
+    return send_platform_email(
+        subject="Welcome to SaaSGlobal Hub",
+        recipient_list=[recipient],
+        template_name="emails/signup_welcome.html",
+        context={
+            "preview_text": "Your account has been created successfully.",
+            "headline": "Welcome to SaaSGlobal Hub",
+            "customer_name": customer_name,
+            "dashboard_url": dashboard_url,
+            "cta_label": "Open Dashboard",
+            "site_name": "SaaSGlobal Hub",
+        },
+    )
+
+
+def send_admin_order_paid_email(
+    *,
+    recipient: str,
+    admin_name: str,
+    customer_name: str,
+    customer_email: str,
+    product_name: str,
+    order_reference: str,
+    amount_paid: str,
+    payment_provider: str,
+    order_url: str,
+):
+    return send_platform_email(
+        subject=f"Order paid: {order_reference}",
+        recipient_list=[recipient],
+        template_name="emails/admin_order_paid.html",
+        context={
+            "preview_text": f"{customer_name} completed payment for {product_name}.",
+            "headline": "Customer Payment Successful",
+            "admin_name": admin_name,
+            "customer_name": customer_name,
+            "customer_email": customer_email,
+            "product_name": product_name,
+            "order_reference": order_reference,
+            "amount_paid": amount_paid,
+            "payment_provider": payment_provider,
+            "order_url": order_url,
+            "cta_label": "Open Order",
             "site_name": "SaaSGlobal Hub",
         },
     )
