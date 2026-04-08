@@ -62,8 +62,17 @@ class MeSerializer(serializers.ModelSerializer):
 class PaymentStartSerializer(serializers.Serializer):
     product_slug = serializers.SlugField()
     provider = serializers.ChoiceField(choices=["stripe", "paystack"])
+    purchase_mode = serializers.ChoiceField(choices=["one_time", "subscription"], required=False, default="one_time")
+    subscription_plan_id = serializers.CharField(required=False, allow_blank=True)
     idempotency_key = serializers.CharField(required=False, allow_blank=True)
     return_path = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        purchase_mode = attrs.get("purchase_mode") or "one_time"
+        subscription_plan_id = (attrs.get("subscription_plan_id") or "").strip()
+        if purchase_mode == "subscription" and not subscription_plan_id:
+            raise serializers.ValidationError({"subscription_plan_id": "subscription_plan_id is required for subscription mode."})
+        return attrs
 
 
 class PaymentConfirmSerializer(serializers.Serializer):
@@ -91,6 +100,9 @@ class PurchaseOrderListSerializer(serializers.ModelSerializer):
             "product_name",
             "product_slug",
             "provider",
+            "purchase_mode",
+            "subscription_plan_name",
+            "subscription_billing_period",
             "amount",
             "amount_ngn",
             "status",
@@ -123,6 +135,10 @@ class PurchaseOrderDetailSerializer(serializers.ModelSerializer):
             "product_slug",
             "product_image_url",
             "provider",
+            "purchase_mode",
+            "subscription_plan_id",
+            "subscription_plan_name",
+            "subscription_billing_period",
             "amount",
             "amount_ngn",
             "status",
@@ -160,6 +176,8 @@ class PurchaseOrderDetailSerializer(serializers.ModelSerializer):
 
     def get_download_details(self, obj):
         if obj.status != "paid":
+            return {}
+        if obj.purchase_mode == "subscription":
             return {}
         download_meta = (obj.product.content or {}).get("download", {})
         return {
