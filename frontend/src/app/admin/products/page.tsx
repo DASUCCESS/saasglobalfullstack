@@ -100,6 +100,27 @@ const emptyProduct: Product = {
   seo: {},
 };
 
+const defaultSubscriptionPlans: SubscriptionPlanForm[] = [
+  { id: "monthly", name: "Monthly Access", billing_period: "Per Month", price_usd: "29" },
+  { id: "quarterly", name: "Quarterly Access", billing_period: "Every 3 Months", price_usd: "79" },
+  { id: "yearly", name: "Yearly Access", billing_period: "Per Year", price_usd: "249" },
+];
+
+function toLocalDateTimeInput(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function localDateTimeToUtcIso(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
+}
+
 export default function Page() {
   const token = getToken();
   const [mode, setMode] = useState<EditorMode>("create");
@@ -485,14 +506,14 @@ export default function Page() {
                       <input
                         type="datetime-local"
                         className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"
-                        value={(selected.promotion_start_at || "").slice(0, 16)}
-                        onChange={(e) => setSelected({ ...selected, promotion_start_at: e.target.value })}
+                        value={toLocalDateTimeInput(selected.promotion_start_at)}
+                        onChange={(e) => setSelected({ ...selected, promotion_start_at: localDateTimeToUtcIso(e.target.value) })}
                       />
                       <input
                         type="datetime-local"
                         className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2"
-                        value={(selected.promotion_end_at || "").slice(0, 16)}
-                        onChange={(e) => setSelected({ ...selected, promotion_end_at: e.target.value })}
+                        value={toLocalDateTimeInput(selected.promotion_end_at)}
+                        onChange={(e) => setSelected({ ...selected, promotion_end_at: localDateTimeToUtcIso(e.target.value) })}
                       />
                     </>
                   ) : null}
@@ -501,7 +522,13 @@ export default function Page() {
                     <input
                       type="checkbox"
                       checked={!!selected.subscription_enabled}
-                      onChange={(e) => setSelected({ ...selected, subscription_enabled: e.target.checked })}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        setSelected({ ...selected, subscription_enabled: enabled });
+                        if (enabled && !subscriptionPlans.length) {
+                          setSubscriptionPlans(defaultSubscriptionPlans);
+                        }
+                      }}
                     />
                     Enable subscription mode
                   </label>

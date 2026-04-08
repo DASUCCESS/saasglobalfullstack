@@ -472,8 +472,8 @@ export default async function ProductDetail({
                           <div className="rounded-3xl border border-gray-200 bg-white p-2">
                             <PaymentPanel
                               slug={product.slug}
-                              priceUsd={product.current_price_usd || product.price_usd}
-                              priceNgn={product.current_price_ngn || product.price_ngn}
+                              priceUsd={product.current_price_usd ?? product.price_usd}
+                              priceNgn={product.current_price_ngn ?? product.price_ngn}
                               showNaira={showNaira}
                               isNigeria={showNaira}
                               subscriptionEnabled={product.subscription_enabled}
@@ -546,8 +546,8 @@ export default async function ProductDetail({
                   <div className="min-w-0 overflow-hidden rounded-3xl border border-gray-200 bg-white p-2 shadow-lg">
                     <PaymentPanel
                       slug={product.slug}
-                      priceUsd={product.current_price_usd || product.price_usd}
-                      priceNgn={product.current_price_ngn || product.price_ngn}
+                      priceUsd={product.current_price_usd ?? product.price_usd}
+                      priceNgn={product.current_price_ngn ?? product.price_ngn}
                       showNaira={showNaira}
                       isNigeria={showNaira}
                       subscriptionEnabled={product.subscription_enabled}
@@ -585,8 +585,8 @@ export default async function ProductDetail({
             <p className="text-xs text-gray-600">
               {!isUpcoming
                 ? showNaira
-                  ? `$${(product.current_price_usd || product.price_usd).toLocaleString()} • ₦${(product.current_price_ngn || product.price_ngn).toLocaleString()} • ${deliveryLabel}`
-                  : `$${(product.current_price_usd || product.price_usd).toLocaleString()} • ${deliveryLabel}`
+                  ? `$${(product.current_price_usd ?? product.price_usd).toLocaleString()} • ₦${(product.current_price_ngn ?? product.price_ngn).toLocaleString()} • ${deliveryLabel}`
+                  : `$${(product.current_price_usd ?? product.price_usd).toLocaleString()} • ${deliveryLabel}`
                 : "Upcoming product"}
             </p>
           </div>

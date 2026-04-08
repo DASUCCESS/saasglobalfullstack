@@ -1,7 +1,12 @@
 from rest_framework import serializers
 from django.utils import timezone
 from apps.catalog.models import Product, ProductBenefit, ProductFAQ, ProductFeature, ProductKPI, ProductStep
+from apps.catalog.subscription_periods import SUPPORTED_SUBSCRIPTION_PLAN_IDS, resolve_subscription_interval
 from apps.core.models import PaymentSettings
+
+
+def _supports_subscription_billing_period(plan_id: str, billing_period: str) -> bool:
+    return resolve_subscription_interval(plan_id, billing_period) is not None
 
 
 class ProductFeatureSerializer(serializers.ModelSerializer):
@@ -188,6 +193,24 @@ class ProductAdminSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({"subscription_plans": f"Plan at index {idx} must include id, name, and billing_period."})
                 if plan_id in seen_ids:
                     raise serializers.ValidationError({"subscription_plans": f"Duplicate plan id '{plan_id}' is not allowed."})
+                if plan_id.lower() not in SUPPORTED_SUBSCRIPTION_PLAN_IDS:
+                    raise serializers.ValidationError(
+                        {
+                            "subscription_plans": (
+                                f"Plan id '{plan_id}' is unsupported. "
+                                f"Use: {', '.join(SUPPORTED_SUBSCRIPTION_PLAN_IDS.keys())}."
+                            )
+                        }
+                    )
+                if not _supports_subscription_billing_period(plan_id, billing_period):
+                    raise serializers.ValidationError(
+                        {
+                            "subscription_plans": (
+                                f"Plan '{plan_id}' billing_period '{billing_period}' is unsupported. "
+                                f"Use plan ids: {', '.join(SUPPORTED_SUBSCRIPTION_PLAN_IDS.keys())}."
+                            )
+                        }
+                    )
                 seen_ids.add(plan_id)
                 try:
                     if float(price_usd) <= 0:
