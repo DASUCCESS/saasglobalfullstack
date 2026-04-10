@@ -10,7 +10,7 @@ export default function AIChatPage() {
       <Header />
       <main className="min-h-screen bg-white pt-24 pb-16 text-black">
         <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">AI Product Agent</h1>
+          <h1 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">AI Product Agent</h1>
           <p className="mt-3 max-w-3xl text-gray-600">
             Get short, product-aware answers powered by our live data and company knowledge.
           </p>
