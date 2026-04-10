@@ -12,6 +12,7 @@ type ApiProduct = {
   name: string;
   short_description?: string;
   tagline?: string;
+  status?: "published" | "hidden" | "upcoming";
   is_visible?: boolean;
   image_url?: string;
   price_usd?: number | string;
@@ -62,7 +63,7 @@ export default function Products() {
 
   useEffect(() => {
     apiGet<{ products: ApiProduct[] }>("/products-page/").then((payload) => {
-      const allVisible = (payload?.products || []).filter((p) => p.is_visible);
+      const allVisible = (payload?.products || []).filter((p) => p.is_visible && p.status === "published");
       const promotionRows = allVisible.filter((item) => item.promotion_is_active);
       const nonPromotionRows = allVisible.filter((item) => !item.promotion_is_active);
 
