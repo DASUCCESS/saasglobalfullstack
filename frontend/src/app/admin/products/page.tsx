@@ -319,8 +319,8 @@ export default function Page() {
 
   return (
     <AdminShell title="Products Management">
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 shadow-xl">
+      <div className="grid min-w-0 gap-6 overflow-x-hidden xl:grid-cols-[420px_1fr]">
+        <section className="min-w-0 rounded-xl border border-neutral-800 bg-neutral-900 p-4 shadow-xl">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h3 className="font-semibold">Products</h3>
             <button
@@ -420,7 +420,7 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-5 shadow-xl">
+        <section className="min-w-0 rounded-xl border border-neutral-800 bg-neutral-900 p-5 shadow-xl">
           {loadingDetail ? (
             <p className="text-neutral-400">Loading product details...</p>
           ) : (
