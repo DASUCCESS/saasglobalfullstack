@@ -14,7 +14,7 @@ import ProductSeoEditor, {
 } from "@/components/admin/ProductSeoEditor";
 import SubscriptionPlansEditor, { SubscriptionPlanForm } from "@/components/admin/SubscriptionPlansEditor";
 import { AdminEmpty, AdminPanel } from "@/components/admin/ui/AdminUI";
-import { apiDelete, apiGet, apiPatchResult, apiPostResult, apiUploadResult } from "@/lib/api";
+import { ApiError, apiDelete, apiGet, apiPatchResult, apiPostResult, apiUploadResult } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { usePaginatedResource } from "@/hooks/usePaginatedResource";
 import { toast } from "@/lib/toast";
@@ -119,6 +119,34 @@ function localDateTimeToUtcIso(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return date.toISOString();
+}
+
+function collectValidationMessages(value: unknown, parentKey = ""): string[] {
+  if (typeof value === "string") {
+    return [parentKey ? `${parentKey}: ${value}` : value];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectValidationMessages(item, parentKey));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, nestedValue]) => {
+      const fieldKey = key === "detail" || key === "non_field_errors" ? parentKey : key;
+      return collectValidationMessages(nestedValue, fieldKey);
+    });
+  }
+
+  return [];
+}
+
+function formatProductError(error: ApiError | null, fallback: string): string {
+  if (!error) return fallback;
+  const validationMessages = collectValidationMessages(error.raw);
+  if (validationMessages.length) {
+    return validationMessages.slice(0, 3).join(" | ");
+  }
+  return error.detail || fallback;
 }
 
 export default function Page() {
@@ -260,7 +288,7 @@ export default function Page() {
     setSaving(false);
 
     if (!res.ok || !res.data) {
-      toast.error(res.error?.detail || "Product creation failed.");
+      toast.error(formatProductError(res.error, "Product creation failed."));
       return;
     }
 
@@ -280,7 +308,7 @@ export default function Page() {
     setSaving(false);
 
     if (!res.ok || !res.data) {
-      toast.error(res.error?.detail || "Product update failed.");
+      toast.error(formatProductError(res.error, "Product update failed."));
       return;
     }
 
@@ -291,8 +319,8 @@ export default function Page() {
 
   return (
     <AdminShell title="Products Management">
-      <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 shadow-xl">
+      <div className="grid min-w-0 gap-6 overflow-x-hidden xl:grid-cols-[420px_1fr]">
+        <section className="min-w-0 rounded-xl border border-neutral-800 bg-neutral-900 p-4 shadow-xl">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h3 className="font-semibold">Products</h3>
             <button
@@ -392,7 +420,7 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-5 shadow-xl">
+        <section className="min-w-0 rounded-xl border border-neutral-800 bg-neutral-900 p-5 shadow-xl">
           {loadingDetail ? (
             <p className="text-neutral-400">Loading product details...</p>
           ) : (

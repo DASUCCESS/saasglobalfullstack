@@ -470,17 +470,17 @@ export default function AIChatInterface({ compact = false }: { compact?: boolean
         ))}
       </div>
 
-      <form onSubmit={ask} className="mt-4 flex gap-2">
+      <form onSubmit={ask} className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask about products, features, pricing, or company details..."
-          className="flex-1 rounded-xl border bg-white px-4 py-3"
+          className="min-w-0 flex-1 rounded-xl border bg-white px-4 py-3"
         />
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl bg-black px-4 py-3 text-white disabled:opacity-50"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-3 text-white disabled:opacity-50 sm:w-auto"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizontal className="h-4 w-4" />}
           <span>{loading ? "Thinking" : "Send"}</span>
