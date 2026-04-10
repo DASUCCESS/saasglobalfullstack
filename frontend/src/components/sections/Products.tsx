@@ -124,65 +124,119 @@ export default function Products() {
           </p>
         </motion.div>
 
-        <div className="mt-16 grid grid-cols-1 gap-10 md:grid-cols-3">
-          {products.map((product, index) => (
-            <motion.a
-              key={product.title}
-              href={product.link}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.15 }}
-              viewport={{ once: true }}
-              className="group flex min-h-[360px] cursor-pointer flex-col rounded-2xl border border-brand-black/10 bg-brand-white p-8 shadow-card transition-all duration-500 hover:scale-105 hover:border-brand-yellow hover:shadow-hover"
-            >
-              <div className="relative w-full overflow-hidden rounded-xl border border-brand-black/10">
-                {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="h-40 w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-40 w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
-                )}
-              </div>
+        <div className="mt-16 grid auto-rows-fr grid-cols-1 gap-10 md:grid-cols-3">
+          {products.map((product, index) => {
+            const hasValidPrice = Number.isFinite(product.priceUsd);
+            const hasPromotion =
+              !!product.promotionIsActive &&
+              Number.isFinite(product.priceUsd) &&
+              Number.isFinite(product.currentPriceUsd) &&
+              (product.currentPriceUsd as number) < (product.priceUsd as number);
 
-              <h3 className="mt-5 text-xl font-semibold text-brand-black transition group-hover:text-brand-yellow">
-                {product.title}
-              </h3>
+            const hasSubscription =
+              !!product.subscriptionEnabled &&
+              (product.subscriptionPlans || []).length > 0;
 
-              <p className="mt-2 leading-relaxed text-brand-black/70">
-                {product.description}
-              </p>
+            return (
+              <motion.a
+                key={product.title}
+                href={product.link}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                viewport={{ once: true }}
+                className="group flex h-full min-h-[620px] transform-gpu cursor-pointer flex-col rounded-2xl border border-brand-black/10 bg-brand-white p-8 shadow-card transition-all duration-500 will-change-transform hover:scale-[1.02] hover:border-brand-yellow hover:shadow-hover"
+              >
+                <div className="relative w-full shrink-0 overflow-hidden rounded-xl border border-brand-black/10">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="h-40 w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="h-40 w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
+                  )}
+                </div>
 
-              {Number.isFinite(product.priceUsd) ? (
-                <ProductPriceDisplay
-                  className="mt-4"
-                  priceUsd={product.priceUsd as number}
-                  currentPriceUsd={
-                    Number.isFinite(product.currentPriceUsd)
-                      ? product.currentPriceUsd
-                      : undefined
-                  }
-                  promotionIsActive={product.promotionIsActive}
-                  promotionEndAt={product.promotionEndAt}
-                />
-              ) : null}
+                <div className="mt-5 min-h-[64px]">
+                  <h3 className="line-clamp-2 text-xl font-semibold leading-8 text-brand-black transition group-hover:text-brand-yellow">
+                    {product.title}
+                  </h3>
+                </div>
 
-              {product.subscriptionEnabled && (product.subscriptionPlans || []).length ? (
-                <>
-                  <span className="mt-2 text-xs font-bold text-[#a66b00]">
-                    This product supports both one-time purchase and subscription.
-                  </span>
-                  <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
-                </>
-              ) : null}
+                <div className="mt-2 min-h-[72px]">
+                  <p className="line-clamp-3 leading-6 text-brand-black/70">
+                    {product.description}
+                  </p>
+                </div>
 
-              <span className="mt-auto pt-6 font-semibold text-brand-yellow transition group-hover:underline">
-                Learn More →
-              </span>
-            </motion.a>
-          ))}
+                <div className="mt-4 min-h-[104px]">
+                  {hasValidPrice ? (
+                    <div className="flex h-full flex-col justify-between rounded-lg border border-brand-black/10 bg-brand-gray/40 p-3">
+                      <div>
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                          Lifetime purchase
+                        </p>
+
+                        <ProductPriceDisplay
+                          className="h-full"
+                          priceUsd={product.priceUsd as number}
+                          currentPriceUsd={
+                            Number.isFinite(product.currentPriceUsd)
+                              ? product.currentPriceUsd
+                              : undefined
+                          }
+                          promotionIsActive={product.promotionIsActive}
+                          promotionEndAt={product.promotionEndAt}
+                        />
+                      </div>
+
+                      {!hasPromotion ? (
+                        <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                          No active promotion for this product yet.
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                          Discount applies to the lifetime purchase price.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex h-full flex-col justify-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                        Lifetime purchase
+                      </p>
+                      <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                        Pricing information will be available soon.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 min-h-[132px]">
+                  {hasSubscription ? (
+                    <div className="flex h-full flex-col rounded-lg border border-[#a66b00]/15 bg-[#fff7e8] p-3">
+                      <span className="min-h-[20px] text-xs font-bold text-[#a66b00]">
+                        This product supports both lifetime purchase and subscription.
+                      </span>
+                      <div className="mt-2 flex-1">
+                        <SubscriptionPlansPreview plans={product.subscriptionPlans || []} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex h-full items-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3 text-xs leading-5 text-brand-black/60">
+                      No subscription plan is available for this product yet.
+                    </div>
+                  )}
+                </div>
+
+                <span className="mt-auto pt-6 font-semibold text-brand-yellow transition group-hover:underline">
+                  Learn More →
+                </span>
+              </motion.a>
+            );
+          })}
         </div>
 
         {promotions.length ? (
@@ -197,52 +251,115 @@ export default function Products() {
               </span>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-              {promotions.map((item) => (
-                <a
-                  key={`${item.link}-promo`}
-                  href={item.link}
-                  className="flex min-h-[360px] cursor-pointer flex-col rounded-xl border border-brand-black/10 bg-brand-white p-5 shadow-card transition hover:scale-105 hover:border-brand-yellow hover:shadow-hover"
-                >
-                  <div className="relative mb-3 w-full overflow-hidden rounded-xl border border-brand-black/10">
-                    {item.imageUrl ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="h-36 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-36 w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
-                    )}
-                  </div>
+            <div className="mt-6 grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-3">
+              {promotions.map((item) => {
+                const hasValidPrice = Number.isFinite(item.priceUsd);
+                const hasPromotion =
+                  !!item.promotionIsActive &&
+                  Number.isFinite(item.priceUsd) &&
+                  Number.isFinite(item.currentPriceUsd) &&
+                  (item.currentPriceUsd as number) < (item.priceUsd as number);
 
-                  <p className="font-semibold text-brand-black">{item.title}</p>
-                  <p className="mt-2 text-sm text-brand-black/70">
-                    {item.description}
-                  </p>
+                const hasSubscription =
+                  !!item.subscriptionEnabled &&
+                  (item.subscriptionPlans || []).length > 0;
 
-                  <ProductPriceDisplay
-                    className="mt-2"
-                    priceUsd={item.priceUsd || 0}
-                    currentPriceUsd={item.currentPriceUsd}
-                    promotionIsActive={item.promotionIsActive}
-                    promotionEndAt={item.promotionEndAt}
-                  />
+                return (
+                  <a
+                    key={`${item.link}-promo`}
+                    href={item.link}
+                    className="group flex h-full min-h-[600px] transform-gpu cursor-pointer flex-col rounded-xl border border-brand-black/10 bg-brand-white p-5 shadow-card transition will-change-transform hover:scale-[1.02] hover:border-brand-yellow hover:shadow-hover"
+                  >
+                    <div className="relative mb-3 w-full shrink-0 overflow-hidden rounded-xl border border-brand-black/10">
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="h-36 w-full object-cover transition duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="h-36 w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
+                      )}
+                    </div>
 
-                  {item.subscriptionEnabled && (item.subscriptionPlans || []).length ? (
-                    <>
-                      <span className="mt-2 text-xs font-bold text-[#a66b00]">
-                       This product supports both one-time purchase and subscription.
-                      </span>
-                      <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
-                    </>
-                  ) : null}
+                    <div className="min-h-[56px]">
+                      <p className="line-clamp-2 text-lg font-semibold leading-7 text-brand-black">
+                        {item.title}
+                      </p>
+                    </div>
 
-                  <span className="mt-auto pt-4 font-semibold text-brand-yellow">
-                    Learn More →
-                  </span>
-                </a>
-              ))}
+                    <div className="mt-2 min-h-[72px]">
+                      <p className="line-clamp-3 text-sm leading-6 text-brand-black/70">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 min-h-[104px]">
+                      {hasValidPrice ? (
+                        <div className="flex h-full flex-col justify-between rounded-lg border border-brand-black/10 bg-brand-gray/40 p-3">
+                          <div>
+                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                              Lifetime purchase
+                            </p>
+
+                            <ProductPriceDisplay
+                              className="h-full"
+                              priceUsd={item.priceUsd as number}
+                              currentPriceUsd={
+                                Number.isFinite(item.currentPriceUsd)
+                                  ? item.currentPriceUsd
+                                  : undefined
+                              }
+                              promotionIsActive={item.promotionIsActive}
+                              promotionEndAt={item.promotionEndAt}
+                            />
+                          </div>
+
+                          {!hasPromotion ? (
+                            <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                              No active promotion for this product yet.
+                            </p>
+                          ) : (
+                            <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                              Discount applies to the lifetime purchase price.
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex h-full flex-col justify-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                            Lifetime purchase
+                          </p>
+                          <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                            Pricing information will be available soon.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3 min-h-[132px]">
+                      {hasSubscription ? (
+                        <div className="flex h-full flex-col rounded-lg border border-[#a66b00]/15 bg-[#fff7e8] p-3">
+                          <span className="min-h-[20px] text-xs font-bold text-[#a66b00]">
+                            This product supports both lifetime purchase and subscription.
+                          </span>
+                          <div className="mt-2 flex-1">
+                            <SubscriptionPlansPreview plans={item.subscriptionPlans || []} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex h-full items-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3 text-xs leading-5 text-brand-black/60">
+                          No subscription plan is available for this product yet.
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="mt-auto pt-4 font-semibold text-brand-yellow transition group-hover:underline">
+                      Learn More →
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         ) : null}

@@ -38,9 +38,17 @@ type StatusFilter =
 
 function ProductCard({ product }: { product: Product }) {
   const disabled = product.status === "upcoming";
+
   const featureList = (
     product.features?.length ? product.features : product.content?.features || []
   ).slice(0, 3);
+
+  const normalizedFeatureList = [...featureList];
+  while (normalizedFeatureList.length < 3) {
+    normalizedFeatureList.push({
+      title: "More feature details will be available soon.",
+    });
+  }
 
   const productImage = product.image_url || product.seo?.og_image || "";
   const basePriceUsd = Number(product.price_usd);
@@ -54,68 +62,124 @@ function ProductCard({ product }: { product: Product }) {
     }))
     .filter((plan) => Number.isFinite(plan.price_usd));
 
+  const hasSubscription =
+    !!product.subscription_enabled && normalizedSubscriptionPlans.length > 0;
+
+  const hasPromotion =
+    !!product.promotion_is_active &&
+    Number.isFinite(basePriceUsd) &&
+    Number.isFinite(currentPriceUsd) &&
+    currentPriceUsd < basePriceUsd;
+
   return (
     <Link
       href={`/products/${product.slug}`}
-      className={`group relative flex h-full transform-gpu flex-col overflow-hidden rounded-xl border border-brand-black/10 bg-brand-white shadow-card transition ${
-        disabled ? "opacity-60 grayscale" : "cursor-pointer hover:scale-105 hover:shadow-hover"
+      className={`group relative flex h-full min-h-[720px] transform-gpu flex-col overflow-hidden rounded-xl border border-brand-black/10 bg-brand-white shadow-card transition will-change-transform ${
+        disabled
+          ? "opacity-60 grayscale"
+          : "cursor-pointer hover:scale-[1.02] hover:shadow-hover"
       }`}
     >
       <div className="absolute left-3 top-3 z-10 rounded-full bg-brand-black px-2 py-1 text-xs text-brand-white shadow-card">
         {disabled ? "Upcoming" : product.badge || "Available"}
       </div>
 
-      {productImage ? (
-        <img
-          src={productImage}
-          alt={product.name}
-          className="h-40 w-full object-cover"
-        />
-      ) : (
-        <div className="h-40 w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
-      )}
-
-      <div className="flex min-h-[360px] flex-1 flex-col p-6">
-        <h2 className="break-words text-xl font-semibold text-brand-black">
-          {product.name}
-        </h2>
-
-        <p className="mt-1 break-words text-sm text-brand-black/70">
-          {product.tagline}
-        </p>
-
-        {hasValidBasePrice ? (
-          <ProductPriceDisplay
-            className="mt-3"
-            priceUsd={basePriceUsd}
-            currentPriceUsd={
-              Number.isFinite(currentPriceUsd) ? currentPriceUsd : undefined
-            }
-            promotionIsActive={product.promotion_is_active}
-            promotionEndAt={product.promotion_end_at || undefined}
+      <div className="h-40 w-full shrink-0 overflow-hidden">
+        {productImage ? (
+          <img
+            src={productImage}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
-        ) : null}
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-brand-black via-brand-black to-brand-yellow" />
+        )}
+      </div>
 
-        {!!product.subscription_enabled &&
-        normalizedSubscriptionPlans.length > 0 ? (
-          <>
-            <p className="mt-2 text-xs font-bold text-[#a66b00]">
-              This product supports both one-time purchase and subscription.
-            </p>
-            <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
-          </>
-        ) : null}
+      <div className="flex flex-1 flex-col p-6">
+        <div className="min-h-[64px]">
+          <h2 className="line-clamp-2 break-words text-xl font-semibold leading-8 text-brand-black">
+            {product.name}
+          </h2>
+        </div>
 
-        <ul className="mt-4 space-y-2 text-sm text-brand-black/80">
-          {featureList.map((f) => (
-            <li key={f.title} className="break-words leading-6">
+        <div className="mt-1 min-h-[48px]">
+          <p className="line-clamp-2 break-words text-sm leading-6 text-brand-black/70">
+            {product.tagline}
+          </p>
+        </div>
+
+        <div className="mt-3 min-h-[104px]">
+          {hasValidBasePrice ? (
+            <div className="flex h-full flex-col justify-between rounded-lg border border-brand-black/10 bg-brand-gray/40 p-3">
+              <div>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                  Lifetime purchase
+                </p>
+
+                <ProductPriceDisplay
+                  className="h-full"
+                  priceUsd={basePriceUsd}
+                  currentPriceUsd={
+                    Number.isFinite(currentPriceUsd) ? currentPriceUsd : undefined
+                  }
+                  promotionIsActive={product.promotion_is_active}
+                  promotionEndAt={product.promotion_end_at || undefined}
+                />
+              </div>
+
+              {!hasPromotion ? (
+                <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                  No active promotion for this product yet.
+                </p>
+              ) : (
+                <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                  Discount applies to the lifetime purchase price.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex h-full flex-col justify-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-black/55">
+                Lifetime purchase
+              </p>
+              <p className="mt-2 text-xs leading-5 text-brand-black/60">
+                Pricing information will be available soon.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 min-h-[132px]">
+          {hasSubscription ? (
+            <div className="flex h-full flex-col rounded-lg border border-[#a66b00]/15 bg-[#fff7e8] p-3">
+              <p className="min-h-[20px] text-xs font-bold text-[#a66b00]">
+                This product supports both lifetime purchase and subscription.
+              </p>
+              <div className="mt-2 flex-1">
+                <SubscriptionPlansPreview plans={normalizedSubscriptionPlans} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-full items-center rounded-lg border border-dashed border-brand-black/10 bg-brand-gray/30 px-3 py-3 text-xs leading-5 text-brand-black/60">
+              No subscription plan is available for this product yet.
+            </div>
+          )}
+        </div>
+
+        <ul className="mt-4 min-h-[108px] space-y-2 text-sm text-brand-black/80">
+          {normalizedFeatureList.map((f, index) => (
+            <li
+              key={`${product.slug}-feature-${index}`}
+              className="min-h-[28px] break-words leading-6 line-clamp-1"
+            >
               {f.title}
             </li>
           ))}
         </ul>
 
-        <div className="mt-6">
-          <span className="inline-block rounded-md bg-brand-black px-4 py-2 text-brand-white shadow-card transition group-hover:bg-brand-yellow group-hover:text-brand-black">
+        <div className="mt-auto pt-6">
+          <span className="inline-flex h-11 w-full items-center justify-center rounded-md bg-brand-black px-4 text-sm font-medium text-brand-white shadow-card transition group-hover:bg-brand-yellow group-hover:text-brand-black">
             {disabled ? "Coming soon" : "View details"}
           </span>
         </div>
@@ -196,7 +260,7 @@ export default function ProductsCatalog({
           </p>
 
           {promotionProducts.length ? (
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {promotionProducts.map((product) => (
                 <ProductCard key={`${product.slug}-promo`} product={product} />
               ))}
@@ -217,7 +281,7 @@ export default function ProductsCatalog({
           </p>
 
           {availableProducts.length ? (
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {availableProducts.map((product) => (
                 <ProductCard key={product.slug} product={product} />
               ))}
@@ -238,7 +302,7 @@ export default function ProductsCatalog({
           </p>
 
           {upcomingProducts.length ? (
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {upcomingProducts.map((product) => (
                 <ProductCard key={product.slug} product={product} />
               ))}
