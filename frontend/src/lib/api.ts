@@ -36,9 +36,11 @@ function firstErrorMessage(value: unknown): string | null {
   }
 
   if (value && typeof value === "object") {
-    for (const nestedValue of Object.values(value as Record<string, unknown>)) {
+    for (const [fieldName, nestedValue] of Object.entries(value as Record<string, unknown>)) {
       const nested = firstErrorMessage(nestedValue);
-      if (nested) return nested;
+      if (nested) {
+        return fieldName === "detail" ? nested : `${fieldName}: ${nested}`;
+      }
     }
   }
 
@@ -46,8 +48,7 @@ function firstErrorMessage(value: unknown): string | null {
 }
 
 function extractErrorDetail(body: unknown, fallback: string): string {
-  const detail = firstErrorMessage(body);
-  return detail || fallback;
+  return firstErrorMessage(body) || fallback;
 }
 
 function defaultCacheForPath(path: string, hasToken: boolean): RequestCache {

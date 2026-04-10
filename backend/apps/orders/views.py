@@ -62,11 +62,6 @@ def create_request(request):
                 .exclude(email="")
                 .values_list("email", flat=True)
             )
-            fallback_recipient = (contact_settings.smtp_username or "").strip()
-
-            if not admin_recipients and fallback_recipient:
-                admin_recipients = [fallback_recipient]
-
             if admin_recipients:
                 email_sent = send_platform_email(
                     subject=subject,
