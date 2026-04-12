@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import FloatingActions from "@/components/sections/FloatingActions";
 import ToastViewport from "@/components/ToastView";
+import HeaderCodeInjector from "@/components/site/HeaderCodeInjector";
 import { env, getSiteUrl } from "@/lib/env";
 import { API_BASE } from "@/lib/api";
 
@@ -63,8 +64,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <head dangerouslySetInnerHTML={headerInjectionCode ? { __html: headerInjectionCode } : undefined} />
+      <head />
       <body className="bg-white text-black antialiased">
+        <HeaderCodeInjector code={headerInjectionCode} />
         {/* Organization + Website schema (sitewide) */}
         <script
           type="application/ld+json"
