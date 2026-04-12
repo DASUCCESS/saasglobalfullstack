@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import FloatingActions from "@/components/sections/FloatingActions";
 import ToastViewport from "@/components/ToastView";
 import { env, getSiteUrl } from "@/lib/env";
+import { API_BASE } from "@/lib/api";
 
 export const metadata = {
   title: {
@@ -34,9 +35,35 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+type PublicSettingsResponse = {
+  site?: {
+    header_injection_code?: string;
+  };
+};
+
+async function getHeaderInjectionCode(): Promise<string> {
+  try {
+    const response = await fetch(`${API_BASE}/settings/public/`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return "";
+    }
+
+    const payload = (await response.json()) as PublicSettingsResponse;
+    return payload.site?.header_injection_code || "";
+  } catch {
+    return "";
+  }
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headerInjectionCode = await getHeaderInjectionCode();
+
   return (
     <html lang="en">
+      <head dangerouslySetInnerHTML={headerInjectionCode ? { __html: headerInjectionCode } : undefined} />
       <body className="bg-white text-black antialiased">
         {/* Organization + Website schema (sitewide) */}
         <script

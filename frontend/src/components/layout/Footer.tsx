@@ -106,6 +106,16 @@ export default function Footer() {
           <Link href="/terms" className="hover:text-brand-yellow">
             Terms of Service
           </Link>
+          {" "}|
+          {" "}
+          <Link href="/sitemap.xml" className="hover:text-brand-yellow">
+            Sitemap
+          </Link>
+          {" "}|
+          {" "}
+          <Link href="/robots.txt" className="hover:text-brand-yellow">
+            Robots
+          </Link>
         </p>
       </div>
     </footer>

@@ -58,6 +58,7 @@ class PublicSiteSettingsSerializer(serializers.ModelSerializer):
             "ai_agent_url",
             "google_client_id",
             "google_verified_domain",
+            "header_injection_code",
         ]
 
 
@@ -76,6 +77,7 @@ class AdminSiteSettingsSerializer(serializers.ModelSerializer):
             "google_client_secret",
             "google_redirect_uri",
             "google_verified_domain",
+            "header_injection_code",
             "admin_access_pin_configured",
             "admin_access_pin",
         ]
