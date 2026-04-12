@@ -50,6 +50,7 @@ class SiteSettings(SingletonModel):
     google_client_secret = models.CharField(max_length=255, blank=True)
     google_redirect_uri = models.URLField(blank=True)
     google_verified_domain = models.CharField(max_length=255, blank=True)
+    header_injection_code = models.TextField(blank=True)
     admin_access_pin_hash = models.CharField(max_length=255, blank=True)
 
     @property

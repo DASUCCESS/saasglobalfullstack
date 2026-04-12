@@ -16,6 +16,7 @@ type Settings = {
     google_client_secret?: string;
     google_redirect_uri?: string;
     google_verified_domain?: string;
+    header_injection_code?: string;
     admin_access_pin_configured?: boolean;
   };
 };
@@ -29,6 +30,7 @@ export default function Page() {
     google_client_secret: "",
     google_redirect_uri: "",
     google_verified_domain: "",
+    header_injection_code: "",
   });
 
   const [pinForm, setPinForm] = useState({
@@ -52,6 +54,7 @@ export default function Page() {
         google_client_secret: res.site.google_client_secret || "",
         google_redirect_uri: res.site.google_redirect_uri || "",
         google_verified_domain: res.site.google_verified_domain || "",
+        header_injection_code: res.site.header_injection_code || "",
       });
       setPinConfigured(Boolean(res.site.admin_access_pin_configured));
     });
@@ -106,6 +109,12 @@ export default function Page() {
           <SecretInput value={form.google_client_secret} onChange={(value) => setForm({ ...form, google_client_secret: value })} placeholder="Google Client Secret" />
           <input value={form.google_redirect_uri} onChange={(e) => setForm({ ...form, google_redirect_uri: e.target.value })} placeholder="Redirect URI" className="border border-neutral-700 rounded-lg bg-neutral-950 px-3 py-2" />
           <input value={form.google_verified_domain} onChange={(e) => setForm({ ...form, google_verified_domain: e.target.value })} placeholder="Verified Domain" className="border border-neutral-700 rounded-lg bg-neutral-950 px-3 py-2" />
+          <textarea
+            value={form.header_injection_code}
+            onChange={(e) => setForm({ ...form, header_injection_code: e.target.value })}
+            placeholder="Header injection code (scripts/meta tags)"
+            className="min-h-32 border border-neutral-700 rounded-lg bg-neutral-950 px-3 py-2 font-mono text-sm"
+          />
 
           <button onClick={saveSettings} className="mt-2 w-fit cursor-pointer rounded bg-brand-yellow px-4 py-2 text-black">
             Save settings
