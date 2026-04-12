@@ -69,7 +69,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@cache_page(60)
 def products_page_payload(_request):
     products = Product.objects.filter(is_visible=True).exclude(status="hidden").prefetch_related(
         "features", "steps", "benefits", "faqs", "kpis"

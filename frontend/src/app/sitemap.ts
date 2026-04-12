@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/env";
 import { API_BASE } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Product = {
   slug: string;
   updated_at?: string;
@@ -16,7 +19,7 @@ const STATIC_ROUTES = ["", "/about", "/contact", "/products", "/privacy", "/term
 async function fetchProductRoutes(): Promise<MetadataRoute.Sitemap> {
   try {
     const response = await fetch(`${API_BASE}/products-page/`, {
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
 
     if (!response.ok) {
